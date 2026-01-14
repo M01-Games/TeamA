@@ -5,21 +5,16 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ItemTypesEnum.h"
-#include "PickupInterface.h"
 #include "Pickup.generated.h"
 
 UCLASS()
-class TEAMA_API APickup : public AActor, public IPickupInterface
+class TEAMA_API APickup : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
 	APickup();
-
-	// Root scene component
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	USceneComponent* RootSceneComponent;
 
 	// Mesh component
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -36,8 +31,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EItemTypesEnum ItemType;
 
-	virtual void CanBePickedUp_Implementation(bool& bCanPickup,
-		APickup*& PickupActor) const override;
+	UFUNCTION()
+	void OnPickedUp();
+
 
 
 };
