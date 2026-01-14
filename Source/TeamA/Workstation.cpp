@@ -7,7 +7,6 @@
 // Sets default values
 AWorkstation::AWorkstation()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 
@@ -32,7 +31,6 @@ AWorkstation::AWorkstation()
 	{
 		Mesh->SetStaticMesh(CubeMesh.Object);
 	}
-
 }
 
 // Called when the game starts or when spawned
@@ -84,10 +82,12 @@ void AWorkstation::Tick(float DeltaTime)
 
 void AWorkstation::Enter(ACharacter* Character)
 {
+
 }
 
 void AWorkstation::Exit(ACharacter* Character)
 {
+
 }
 
 void AWorkstation::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
@@ -96,6 +96,3 @@ void AWorkstation::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
     OutResult.Rotation = CameraPoint->GetComponentRotation();
     OutResult.FOV = 90.f;
 }
-
-// Draw debug box for interaction volume
-
