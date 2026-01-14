@@ -2,6 +2,8 @@
 
 #include "Workstation.h"
 #include "DrawDebugHelpers.h"
+#include "ItemSlot.h"
+#include "Pickup.h"
 
 
 // Sets default values
@@ -31,6 +33,7 @@ AWorkstation::AWorkstation()
 	{
 		Mesh->SetStaticMesh(CubeMesh.Object);
 	}
+
 }
 
 // Called when the game starts or when spawned
@@ -82,6 +85,21 @@ void AWorkstation::Tick(float DeltaTime)
 
 void AWorkstation::Enter(ACharacter* Character)
 {
+	//Inventory.Empty();
+	// Find all child actors of type AItemSlot and add their attached items to inventory
+	/*
+	TArray<AActor*> ChildActors;
+	GetAttachedActors(ChildActors);
+	for (AActor* Child : ChildActors)
+	{
+		AItemSlot* ItemSlot = Cast<AItemSlot>(Child);
+		if (ItemSlot && ItemSlot->bIsOccupied && ItemSlot->AttachedItem)
+		{
+			Inventory.Add(ItemSlot->AttachedItem);
+		}
+	}
+	*/
+	UE_LOG(LogTemp, Log, TEXT("Workstation Entered. Inventory has %d items."), Inventory.Num());
 
 }
 

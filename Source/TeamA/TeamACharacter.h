@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "Workstation.h"
+#include "Pickup.h"
 #include "TeamACharacter.generated.h"
 
 class UInputComponent;
@@ -84,6 +85,19 @@ public:
 		int32 OtherBodyIndex
 	);
 
+	// Pickup settings
+	UPROPERTY(EditAnywhere, Category = "Pickup")
+	float PickupRange = 250.f;
+
+	UPROPERTY(EditAnywhere, Category = "Pickup")
+	USceneComponent* HoldPoint;
+
+	UPROPERTY(BlueprintReadOnly)
+	APickup* HeldItem;
+
+
+
+
 protected:
 
 	/** Called from Input Actions for movement input */
@@ -99,6 +113,15 @@ protected:
 	/** Handles move inputs from either controls or UI interfaces */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
+
+	/** Get the pickup actor in view */
+	APickup* GetPickupInView();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	virtual void PickupItem();
+
+
+
 
 protected:
 

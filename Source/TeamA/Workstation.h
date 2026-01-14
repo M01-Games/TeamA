@@ -26,6 +26,9 @@ public:
 		float DeltaTime,
 		struct FMinimalViewInfo& OutResult) override;
 
+	// Array of pickup actors that are in this workstations inventory
+	TArray<class APickup*> Inventory;
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -44,6 +47,8 @@ protected:
 	// Camera location/rotation when player is using this station
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* CameraPoint;
+
+	
 
 public:	
 	// Called every frame

@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "ItemSlot.h"
 #include "TeamA.h"
 
 ATeamACharacter::ATeamACharacter()
@@ -48,6 +49,11 @@ ATeamACharacter::ATeamACharacter()
 
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ATeamACharacter::OnOverlapEnd);
 
+	HoldPoint = CreateDefaultSubobject<USceneComponent>(TEXT("HoldPoint"));
+	HoldPoint->SetupAttachment(FirstPersonCameraComponent);
+	HoldPoint->SetRelativeLocation(FVector(100.f, 0.f, -10.f));
+
+
 }
 
 void ATeamACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -65,6 +71,9 @@ void ATeamACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		// Interacting
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ATeamACharacter::Interact);
 		EnhancedInputComponent->BindAction(ExitWorkstationAction, ETriggerEvent::Triggered, this, &ATeamACharacter::ExitWorkstation);
+
+		// Pickup
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATeamACharacter::PickupItem);
 
 	}
 	else
@@ -180,3 +189,105 @@ void ATeamACharacter::ExitWorkstation()
 	CurrentWorkstation->Exit(this);
 	CurrentWorkstation = nullptr;
 }
+
+
+APickup* ATeamACharacter::GetPickupInView()
+{
+	
+	FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+	FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * 300.0f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_Visibility,
+		Params
+	);
+
+	if (AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor()))
+	{
+		if (Slot->bIsOccupied)
+		{
+			APickup* Item = Slot->TakeItem();
+			if (Item)
+			{
+				return Item;
+			}
+		}
+	}
+
+	if (bHit)
+	{
+
+		UE_LOG(LogTeamA, Log, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
+		return Cast<APickup>(Hit.GetActor());
+	}
+	
+	return nullptr;
+}
+
+void ATeamACharacter::PickupItem()
+{
+	if (HeldItem)
+	{
+		
+		// Line trace or overlap to detect socket
+		FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+		FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * PickupRange);
+
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		Params.AddIgnoredActor(HeldItem);
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+
+		if (bHit)
+		{
+			AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor());
+			if (Slot && Slot->AttachItem(HeldItem))
+			{
+				HeldItem = nullptr;
+				return;
+			}
+		}
+		
+
+		// If no socket hit, drop normally
+		HeldItem->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		HeldItem->CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		HeldItem->CollisionMesh->SetSimulatePhysics(true);
+		HeldItem->CollisionMesh->SetEnableGravity(true);
+
+		HeldItem = nullptr;
+		return;
+	}
+
+
+	APickup* Pickup = GetPickupInView();
+	if (!Pickup) {return;}
+
+	HeldItem = Pickup;
+
+	// Disable physics
+	Pickup->CollisionMesh->SetSimulatePhysics(false);
+	//Pickup->CollisionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Pickup->CollisionMesh->SetEnableGravity(false);
+
+	// Attach to hold point
+	Pickup->AttachToComponent(
+		HoldPoint,
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale
+	);
+
+	Pickup->SetActorRelativeLocation(FVector::ZeroVector);
+	Pickup->SetActorRelativeRotation(FRotator::ZeroRotator);
+
+	Pickup->OnPickedUp();
+}
+

@@ -9,12 +9,9 @@ APickup::APickup()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Create root scene component
-	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootSceneComponent"));
-	RootComponent = RootSceneComponent;
+
 	// Create mesh component
 	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CollisionMesh"));
-	CollisionMesh->SetupAttachment(RootComponent);
 
 	// simulate physics
 	CollisionMesh->SetSimulatePhysics(true);
@@ -22,6 +19,7 @@ APickup::APickup()
 	CollisionMesh->SetGenerateOverlapEvents(true);
 	// Enable collision
 	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	RootComponent = CollisionMesh;
 }
 
 // Called when the game starts or when spawned
@@ -38,11 +36,8 @@ void APickup::Tick(float DeltaTime)
 
 }
 
-void APickup::CanBePickedUp_Implementation(
-	bool& bCanPickup,
-	APickup*& PickupActor
-) const
+void APickup::OnPickedUp()
 {
-	bCanPickup = true;
-	PickupActor = const_cast<APickup*>(this);
+	// You can add custom logic here for when the item is picked up
+	// For example, play a sound or spawn a particle effect
 }
