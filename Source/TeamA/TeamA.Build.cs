@@ -25,12 +25,6 @@ public class TeamA : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"TeamA",
-			"TeamA/Variant_Horror",
-			"TeamA/Variant_Horror/UI",
-			"TeamA/Variant_Shooter",
-			"TeamA/Variant_Shooter/AI",
-			"TeamA/Variant_Shooter/UI",
-			"TeamA/Variant_Shooter/Weapons"
 		});
 
 		// Uncomment if you are using Slate UI
