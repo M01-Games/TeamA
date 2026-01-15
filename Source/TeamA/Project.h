@@ -1,3 +1,5 @@
+#pragma once
+
 #include "CoreMinimal.h"
 #include "Pickup.h"
 #include "Project.generated.h"
@@ -20,6 +22,7 @@ public:
 	//Variables for Forging minigame
 	bool bIsForged;
 	TArray<float> ForgingPattern;
+	float forgingProgress;
 
 protected:
 
