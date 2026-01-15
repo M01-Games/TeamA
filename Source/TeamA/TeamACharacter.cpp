@@ -211,7 +211,7 @@ APickup* ATeamACharacter::GetPickupInView()
 		Hit,
 		Start,
 		End,
-		ECC_Visibility,
+		ECC_GameTraceChannel4,
 		Params
 	);
 
