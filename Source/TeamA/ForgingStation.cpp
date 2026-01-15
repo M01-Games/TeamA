@@ -5,6 +5,8 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Character.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/UserWidget.h"
+#include "ForgingWidget.h"
 #include "ForgingStation.h"
 
 AForgingStation::AForgingStation()
@@ -19,6 +21,27 @@ AForgingStation::AForgingStation()
 void AForgingStation::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (ForgingWidgetClass)
+	{
+		ForgingWidgetInstance = CreateWidget<UForgingWidget>(
+			GetWorld(),
+			ForgingWidgetClass
+		);
+
+		if (ForgingWidgetInstance)
+		{
+			ForgingWidgetInstance->AddToViewport();
+		}
+
+		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Space to start forging"));
+
+		ForgingWidgetInstance->ShowForgePrompt(false);
+		ForgingWidgetInstance->ShowHammerBar_0(false);
+		ForgingWidgetInstance->ShowTarget_0(false);
+
+	}
+
 }
 
 void AForgingStation::Tick(float DeltaTime)
@@ -38,7 +61,6 @@ void AForgingStation::Tick(float DeltaTime)
 			// Already forged
 			return;
 		}
-
 
 	}
 }
@@ -145,6 +167,19 @@ void AForgingStation::Exit_Implementation(ACharacter* Character)
 void AForgingStation::StartForgingSequence()
 {
 	UE_LOG(LogTemp, Warning, TEXT("FORGING"));
+	ForgingWidgetInstance->ShowForgePrompt(false);
+
+	ForgingWidgetInstance->ShowHammerBar_0(true);
+	ForgingWidgetInstance->ShowTarget_0(true);
+
+	//Get canvas size to set target position
+	FVector2D ViewportSize = ForgingWidgetInstance->GetCanvasSize();
+
+	// Random target position within the canvas
+	float TargetPosition = FMath::FRandRange(0.1f, 0.9f) * ViewportSize.X;
+	UE_LOG(LogTemp, Warning, TEXT("Target Position: %f"), TargetPosition);
+
+	ForgingWidgetInstance->SetTarget_0Position(TargetPosition, 500.0f);
 
 }
 
@@ -152,5 +187,12 @@ void AForgingStation::ProcessHammerInput()
 {
 	// Implementation for processing hammer input
 	UE_LOG(LogTemp, Warning, TEXT("HAMMERING"));
+	ForgingWidgetInstance->ShowForgePrompt(true);
+
+	// Hide hammer bar and target for now
+	ForgingWidgetInstance->ShowHammerBar_0(false);
+	ForgingWidgetInstance->ShowTarget_0(false);
+
+
 }
 

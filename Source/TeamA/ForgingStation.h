@@ -7,11 +7,14 @@
 #include "Project.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "ForgingWidget.h"
 #include "ForgingStation.generated.h"
 
 /**
  * 
  */
+
+
 
 class UInputComonponent;
 
@@ -47,6 +50,10 @@ protected:
 	void BindInput(APlayerController* PC);
 	void UnbindInput();
 
+	// Widget instance (runtime)
+	UPROPERTY()
+	UForgingWidget* ForgingWidgetInstance;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void Enter_Implementation(class ACharacter* Character) override;
@@ -58,5 +65,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	int32 ForgingMappingPriority = 2;
+
+	// UI Widget for forging
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UUserWidget> ForgingWidgetClass;
+
 
 };

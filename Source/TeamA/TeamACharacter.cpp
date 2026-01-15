@@ -260,6 +260,7 @@ void ATeamACharacter::PickupItem()
 			AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor());
 			if (Slot && Slot->AttachItem(HeldItem))
 			{
+				HeldItem->CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 				HeldItem = nullptr;
 				return;
 			}

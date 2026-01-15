@@ -71,21 +71,6 @@ void AWorkstation::Tick(float DeltaTime)
 		2.f
 	);
 
-	// Draw debug arrow for camera point
-	FVector ArrowStart = CameraPoint->GetComponentLocation();
-	FVector ArrowEnd = ArrowStart + CameraPoint->GetForwardVector() * 50.f;
-	DrawDebugDirectionalArrow(
-		GetWorld(),
-		ArrowStart,
-		ArrowEnd,
-		10.f,
-		FColor::Blue,
-		false,
-		-1.f,
-		0,
-		2.f
-	);
-
 
 }
 
