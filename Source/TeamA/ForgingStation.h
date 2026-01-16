@@ -59,6 +59,26 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
 	float PositionGoodPixels = 60.f;
 
+	// Forging score tracking
+	UPROPERTY(BlueprintReadOnly)
+	int32 TotalForgeHits = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	float TotalForgeScore = 0.0f;
+
+	// Final normalized score (0–100)
+	UPROPERTY(BlueprintReadOnly)
+	float FinalForgeScore = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
+	float PerfectHitScore = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
+	float GoodHitScore = 0.6f;
+
+	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
+	float BadHitScore = 0.2f;
+
 	
 
 protected:

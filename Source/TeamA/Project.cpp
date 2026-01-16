@@ -17,3 +17,18 @@ AProject::AProject()
 	forgingProgress = 0.0f;
 	ForgingPattern = { 3, 3, 9 }; // Example pattern
 }
+
+void AProject::FinalizeForgingScore()
+{
+	if (TotalForgeHits <= 0)
+	{
+		FinalForgeScore = 0.0f;
+		return;
+	}
+
+	// Average hit score 0–1
+	float AverageScore = TotalForgeScore / TotalForgeHits;
+
+	// Convert to percentage
+	FinalForgeScore = FMath::Clamp(AverageScore * 100.0f, 0.0f, 100.0f);
+}

@@ -381,6 +381,27 @@ void AForgingStation::ProcessHammerInput()
 		CurrentProject->forgingProgress * 100.0f
 	);
 
+	float HitScore = 0.0f;
+
+	switch (FinalQuality)
+	{
+	case EForgeHitQuality::Perfect:
+		HitScore = PerfectHitScore;
+		break;
+
+	case EForgeHitQuality::Good:
+		HitScore = GoodHitScore;
+		break;
+
+	case EForgeHitQuality::Bad:
+		HitScore = BadHitScore;
+		break;
+	}
+
+	CurrentProject->TotalForgeHits++;
+	CurrentProject->TotalForgeScore += HitScore;
+
+
 
 	CurrentHammerIndex++;
 	BeginNextHammer();
@@ -420,7 +441,14 @@ void AForgingStation::FinishForging()
 	if (CurrentProject->forgingProgress >= 1.0f)
 	{
 		CurrentProject->bIsForged = true;
-		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Forging complete"));
+		CurrentProject->FinalizeForgingScore();
+
+		ForgingWidgetInstance->UpdateForgePrompt(
+			FString::Printf(
+				TEXT("Forging complete! Score: %.0f"),
+				CurrentProject->FinalForgeScore
+			)
+		);
 	}
 	else
 	{

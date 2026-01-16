@@ -23,6 +23,10 @@ public:
 	bool bIsForged;
 	TArray<float> ForgingPattern;
 	float forgingProgress;
+	float TotalForgeScore;
+	int32 TotalForgeHits;
+	float FinalForgeScore;
+	void FinalizeForgingScore();
 
 protected:
 
