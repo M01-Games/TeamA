@@ -68,18 +68,23 @@ public:
 
 	void ShowTarget_0(bool bShow);
 	void SetTarget_0Position(float x, float y);
+	FVector2D GetTarget_0Position() const;
+
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* Target_1;
 
 	void ShowTarget_1(bool bShow);
 	void SetTarget_1Position(float x, float y);
+	FVector2D GetTarget_1Position() const;
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* Target_2;
 
 	void ShowTarget_2(bool bShow);
 	void SetTarget_2Position(float x, float y);
+	FVector2D GetTarget_2Position() const;
+	
 
 
 

@@ -14,9 +14,16 @@
  * 
  */
 
-
-
 class UInputComonponent;
+
+UENUM(BlueprintType)
+enum class EForgeHitQuality : uint8
+{
+	Perfect,
+	Good,
+	Bad
+};
+
 
 UCLASS()
 class TEAMA_API AForgingStation : public AWorkstation
@@ -35,6 +42,25 @@ public:
 	void StartForgingSequence();
 	void ProcessHammerInput();
 
+	// How much forging progress per successful hit
+	UPROPERTY(EditAnywhere, Category = "Forging")
+	float ForgingProgressPerHit = 0.05f; // 5%
+
+	// Scoring tolerances
+	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
+	float TimingPerfectThreshold = 0.05f; // ±5%
+
+	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
+	float TimingGoodThreshold = 0.15f; // ±15%
+
+	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
+	float PositionPerfectPixels = 20.f;
+
+	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
+	float PositionGoodPixels = 60.f;
+
+	
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -44,6 +70,51 @@ protected:
 	
 	bool isEntered;
 	bool isForging;
+	
+	// Forging progression
+	int32 CurrentHammerIndex = 0;
+
+	// Current bar fill (0–1)
+	float CurrentHammerFill = 0.0f;
+
+	// How fast bars fill (seconds to full)
+	UPROPERTY(EditAnywhere, Category = "Forging")
+	float HammerFillDuration = 1.5f;
+
+	// Cached pattern length
+	int32 TotalHammerHits = 0;
+
+	// Target value (0–1) — later derived from pattern
+	float CurrentTargetValue = 0.5f;
+
+
+
+
+
+
+
+
+	// Cached target positions (generated at start)
+	TArray<float> CachedTargetPositions;
+
+	void BeginNextHammer();
+	void FinishForging();
+	EForgeHitQuality EvaluateTiming(float FillValue, float TargetValue) const;
+	FVector2D GetTargetScreenPosition(int32 Index) const;
+	EForgeHitQuality EvaluatePosition(const FVector2D& CursorPos,const FVector2D& TargetPos) const;
+	EForgeHitQuality CombineHitQuality(EForgeHitQuality Timing, EForgeHitQuality Position);
+
+
+	// Tuning
+	UPROPERTY(EditAnywhere, Category = "Forging")
+	float BaseChargeSpeed = 0.4f;
+
+	UPROPERTY(EditAnywhere, Category = "Forging")
+	float PerfectWindow = 0.08f;
+
+	UPROPERTY(EditAnywhere, Category = "Forging")
+	float AcceptableWindow = 0.15f;
+
 
 	UPROPERTY()
 	UEnhancedInputComponent* CachedEnhancedInput = nullptr;

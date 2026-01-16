@@ -237,6 +237,46 @@ void UForgingWidget::SetTarget_2Position(float x, float y)
 	}
 }
 
+FVector2D UForgingWidget::GetTarget_0Position() const
+{
+	if (Target_0)
+	{
+		UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Target_0->Slot);
+		if (CanvasSlot)
+		{
+			return CanvasSlot->GetPosition();
+		}
+	}
+	return FVector2D::ZeroVector;
+}
+
+FVector2D UForgingWidget::GetTarget_1Position() const
+{
+	if (Target_1)
+	{
+		UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Target_1->Slot);
+		if (CanvasSlot)
+		{
+			return CanvasSlot->GetPosition();
+		}
+	}
+	return FVector2D::ZeroVector;
+}
+
+FVector2D UForgingWidget::GetTarget_2Position() const
+{
+	if (Target_2)
+	{
+		UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Target_2->Slot);
+		if (CanvasSlot)
+		{
+			return CanvasSlot->GetPosition();
+		}
+	}
+	return FVector2D::ZeroVector;
+}
+
+
 
 
 FVector2D UForgingWidget::GetCanvasSize() const

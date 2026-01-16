@@ -178,6 +178,28 @@ void AForgingStation::Tick(float DeltaTime)
 			return;
 		}
 
+		if (isForging)
+		{
+			float FillSpeed = 1.0f / HammerFillDuration;
+			CurrentHammerFill += DeltaTime * FillSpeed;
+			CurrentHammerFill = FMath::Clamp(CurrentHammerFill, 0.0f, 1.0f);
+
+			// Update UI
+			if (CurrentHammerIndex == 0)
+			{
+				ForgingWidgetInstance->UpdateHammerBar_0(CurrentHammerFill);
+			}
+			else if (CurrentHammerIndex == 1)
+			{
+				ForgingWidgetInstance->UpdateHammerBar_1(CurrentHammerFill);
+			}
+			else if (CurrentHammerIndex == 2)
+			{
+				ForgingWidgetInstance->UpdateHammerBar_2(CurrentHammerFill);
+			}
+		}
+
+
 	}
 }
 
@@ -185,6 +207,10 @@ void AForgingStation::Tick(float DeltaTime)
 // When Space is pressed
 void AForgingStation::StartForgingSequence()
 {
+
+	
+
+
 	if (isForging)
 	{
 		return;
@@ -197,6 +223,14 @@ void AForgingStation::StartForgingSequence()
 	if (CurrentProject->bIsForged)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Project already forged"));
+		return;
+	}
+
+	if (CurrentProject->forgingProgress >= 1.0f)
+	{
+		CurrentProject->bIsForged = true;
+		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Project fully forged"));
+		ForgingWidgetInstance->ShowForgePrompt(true);
 		return;
 	}
 
@@ -235,10 +269,13 @@ void AForgingStation::StartForgingSequence()
 		} while (!bIsValidPosition);
 		TargetPositions[i] = Position;
 	}
+	//Sort positions for left-to-right arrangement
+	TargetPositions.Sort();
+
 	//Get canvas size to set target position
 	FVector2D ViewportSize = ForgingWidgetInstance->GetCanvasSize();
 
-	float TargetPositionY = ViewportSize.Y / 2.0f; // Center vertically
+	float TargetPositionY = ViewportSize.Y * 0.4f; // Center
 	float HammerBarPositionY = ViewportSize.Y * 0.8f; // Near bottom
 
 	if (PatternLength > 0)
@@ -270,26 +307,136 @@ void AForgingStation::StartForgingSequence()
 	}
 
 	isForging = true;
+	CurrentHammerIndex = 0;
+	CurrentHammerFill = 0.0f;
+	TotalHammerHits = CurrentForgingPattern.Num();
+
+	// For now, fixed target
+	CurrentTargetValue = 0.5f;
+
+	BeginNextHammer();
 
 }
 
-// When Left Mouse Button is pressed
 void AForgingStation::ProcessHammerInput()
 {
-	if (!isForging)
+	if (!isForging || !CurrentProject || !ForgingWidgetInstance)
+		return;
+
+	// Get cursor position
+	float MouseX, MouseY;
+	APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
+	if (!PC || !PC->GetMousePosition(MouseX, MouseY))
+		return;
+
+	FVector2D CursorPos(MouseX, MouseY);
+	FVector2D TargetPos = GetTargetScreenPosition(CurrentHammerIndex);
+
+	// Evaluate scores
+	EForgeHitQuality TimingQuality =
+		EvaluateTiming(CurrentHammerFill, 0.5f);
+
+	EForgeHitQuality PositionQuality =
+		EvaluatePosition(CursorPos, TargetPos);
+
+	EForgeHitQuality FinalQuality =
+		CombineHitQuality(TimingQuality, PositionQuality);
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("Hammer %d hit at %.2f"),
+		CurrentHammerIndex,
+		CurrentHammerFill
+	);
+
+	// Apply forging progress
+	CurrentProject->forgingProgress += ForgingProgressPerHit;
+	CurrentProject->forgingProgress =
+		FMath::Clamp(CurrentProject->forgingProgress, 0.0f, 1.0f);
+
+
+	// Hide current bar
+	if (CurrentHammerIndex == 0)
 	{
+		ForgingWidgetInstance->ShowHammerBar_0(false);
+	}
+	else if (CurrentHammerIndex == 1)
+	{
+		ForgingWidgetInstance->ShowHammerBar_1(false);
+	}
+	else if (CurrentHammerIndex == 2)
+	{
+		ForgingWidgetInstance->ShowHammerBar_2(false);
+	}
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("Hit %d - Timing: %d | Position: %d | Final: %d | Progress: %.0f%%"),
+		CurrentHammerIndex,
+		(int32)TimingQuality,
+		(int32)PositionQuality,
+		(int32)FinalQuality,
+		CurrentProject->forgingProgress * 100.0f
+	);
+
+
+	CurrentHammerIndex++;
+	BeginNextHammer();
+}
+
+
+
+void AForgingStation::BeginNextHammer()
+{
+	if (CurrentHammerIndex >= TotalHammerHits)
+	{
+		FinishForging();
 		return;
 	}
 
+	CurrentHammerFill = 0.0f;
 
-	// Implementation for processing hammer input
-	UE_LOG(LogTemp, Warning, TEXT("HAMMERING"));
+	// Show correct bar
+	if (CurrentHammerIndex == 0)
+	{
+		ForgingWidgetInstance->ShowHammerBar_0(true);
+	}
+	else if (CurrentHammerIndex == 1)
+	{
+		ForgingWidgetInstance->ShowHammerBar_1(true);
+	}
+	else if (CurrentHammerIndex == 2)
+	{
+		ForgingWidgetInstance->ShowHammerBar_2(true);
+	}
+}
+
+void AForgingStation::FinishForging()
+{
+	isForging = false;
+
+	if (CurrentProject->forgingProgress >= 1.0f)
+	{
+		CurrentProject->bIsForged = true;
+		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Forging complete"));
+	}
+	else
+	{
+		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Space to continue forging"));
+	}
+
 	ForgingWidgetInstance->ShowForgePrompt(true);
 
-	// Hide hammer bar and target for now
-	ForgingWidgetInstance->ShowHammerBar_0(false);
-	ForgingWidgetInstance->ShowTarget_0(false);
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("Forging sequence complete. Progress: %.0f%%"),
+		CurrentProject->forgingProgress * 100.0f
+	);
 }
+
 
 
 
@@ -336,4 +483,57 @@ void AForgingStation::UnbindInput()
 	CachedEnhancedInput = nullptr;
 
 	DisableInput(nullptr);
+}
+
+EForgeHitQuality AForgingStation::EvaluateTiming(float FillValue, float TargetValue) const
+{
+	float Error = FMath::Abs(FillValue - TargetValue);
+
+	if (Error <= TimingPerfectThreshold)
+		return EForgeHitQuality::Perfect;
+
+	if (Error <= TimingGoodThreshold)
+		return EForgeHitQuality::Good;
+
+	return EForgeHitQuality::Bad;
+}
+
+EForgeHitQuality AForgingStation::EvaluatePosition(
+	const FVector2D& CursorPos,
+	const FVector2D& TargetPos) const
+{
+	float Distance = FVector2D::Distance(CursorPos, TargetPos);
+
+	if (Distance <= PositionPerfectPixels)
+		return EForgeHitQuality::Perfect;
+
+	if (Distance <= PositionGoodPixels)
+		return EForgeHitQuality::Good;
+
+	return EForgeHitQuality::Bad;
+}
+
+
+
+FVector2D AForgingStation::GetTargetScreenPosition(int32 Index) const
+{
+	switch (Index)
+	{
+	case 0: return ForgingWidgetInstance->GetTarget_0Position();
+	case 1: return ForgingWidgetInstance->GetTarget_1Position();
+	case 2: return ForgingWidgetInstance->GetTarget_2Position();
+	default: return FVector2D::ZeroVector;
+	}
+}
+
+EForgeHitQuality AForgingStation::CombineHitQuality(
+	EForgeHitQuality Timing,
+	EForgeHitQuality Position)
+{
+	return static_cast<EForgeHitQuality>(
+		FMath::Max(
+			static_cast<uint8>(Timing),
+			static_cast<uint8>(Position)
+		)
+		);
 }
