@@ -375,6 +375,12 @@ void AForgingStation::ProcessHammerInput()
 	EForgeHitQuality FinalQuality =
 		CombineHitQuality(TimingQuality, PositionQuality);
 
+	//
+	//
+	PlayHammerAnimation(CurrentHammerIndex, FinalQuality);
+	//
+	//
+
 	UE_LOG(
 		LogTemp,
 		Warning,
