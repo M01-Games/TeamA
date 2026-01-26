@@ -120,12 +120,6 @@ protected:
 	float CurrentTargetValue = 0.5f;
 
 
-
-
-
-
-
-
 	// Cached target positions (generated at start)
 	TArray<float> CachedTargetPositions;
 

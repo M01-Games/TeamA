@@ -22,6 +22,7 @@ public:
 	//Variables for Forging minigame
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsForged;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<float> ForgingPattern;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float forgingProgress;

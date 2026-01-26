@@ -15,7 +15,7 @@ AProject::AProject()
 	//Set default values for forging minigame
 	bIsForged = false;
 	forgingProgress = 0.0f;
-	ForgingPattern = { 3, 3, 9 }; // Example pattern
+	ForgingPattern = { 0.3, 0.3, 0.9 }; // Example pattern
 }
 
 void AProject::FinalizeForgingScore()

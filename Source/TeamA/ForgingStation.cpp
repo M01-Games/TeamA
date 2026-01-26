@@ -14,6 +14,8 @@
 #include "NiagaraSystem.h"
 #include "DrawDebugHelpers.h"
 #include "Project.h"
+#include "NiagaraSystem.h"
+#include "ForgingTargetActor.h"
 #include "Components/WidgetComponent.h"
 #include "ForgingWidget.h"
 
@@ -91,6 +93,8 @@ void AForgingStation::Enter_Implementation(ACharacter* Character)
 
 	isEntered = true;
 	isForging = false;
+
+	CurrentTargetValue = 0.0f;
 
 
 	if (ForgingWidgetClass)
@@ -175,6 +179,13 @@ void AForgingStation::Tick(float DeltaTime)
 		return;
 	}
 
+	if (CurrentTargetValue <= 0) {
+		ForgingWidgetInstance->SetForgeTargetVisible(false);
+	}
+	else {
+		ForgingWidgetInstance->SetForgeTargetVisible(true);
+	}
+
 	// Implementation for starting the forging sequence
 	if (CurrentProject)
 	{
@@ -189,9 +200,21 @@ void AForgingStation::Tick(float DeltaTime)
 			float FillSpeed = 1.0f / HammerFillDuration;
 			CurrentHammerFill += DeltaTime * FillSpeed;
 			CurrentHammerFill = FMath::Clamp(CurrentHammerFill, 0.0f, 1.0f);
+			CurrentTargetValue = CurrentForgingPattern.IsValidIndex(CurrentHammerIndex)
+				? CurrentForgingPattern[CurrentHammerIndex]
+				: 0.5f;
 
 			// Update UI
 			ForgingWidgetInstance->UpdateHammerBar_0(CurrentHammerFill);
+			ForgingWidgetInstance->SetForgeTargetPercent(CurrentTargetValue);
+			
+			AForgingTargetActor* CurrentTarget = ActiveTargets.IsValidIndex(CurrentHammerIndex)
+				? ActiveTargets[CurrentHammerIndex]
+				: nullptr;
+			if (CurrentTarget) {
+				
+			}
+
 		}
 	}
 
@@ -313,7 +336,7 @@ void AForgingStation::StartForgingSequence()
 	TotalHammerHits = CurrentForgingPattern.Num();
 
 	// For now, fixed target
-	CurrentTargetValue = 0.5f;
+	CurrentTargetValue = CurrentForgingPattern[CurrentHammerIndex];
 
 	BeginNextHammer();
 
@@ -347,6 +370,7 @@ void AForgingStation::ProcessHammerInput()
 		? ActiveTargets[CurrentHammerIndex]
 		: nullptr;
 
+
 	if (!CurrentTarget)
 		return;
 
@@ -355,7 +379,7 @@ void AForgingStation::ProcessHammerInput()
 
 	// Evaluate scores
 	EForgeHitQuality TimingQuality =
-		EvaluateTiming(CurrentHammerFill, 0.5f);
+		EvaluateTiming(CurrentHammerFill, CurrentTargetValue);
 
 	EForgeHitQuality PositionQuality =
 		EvaluateScreenPosition( HitWorldPos, CurrentTarget );
@@ -401,13 +425,13 @@ void AForgingStation::ProcessHammerInput()
 	}
 
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-		GetWorld(),
-		HitEffect,
-		CurrentTarget->TargetWidget->GetComponentLocation(),
-		FRotator::ZeroRotator,
-		FVector(EffectScale),
-		true,
-		true
+		GetWorld(), //Spawn in world
+		HitEffect, // Effect to spawn
+		HitWorldPos, // At target location
+		FRotator::ZeroRotator, // No rotation
+		FVector(EffectScale), // Scale based on hit quality
+		true, // Auto destroy
+		true // Auto activate
 	);
 
 
@@ -472,6 +496,7 @@ void AForgingStation::BeginNextHammer()
 void AForgingStation::FinishForging()
 {
 	isForging = false;
+	CurrentTargetValue = 0.0f;
 
 	if (CurrentProject->forgingProgress >= 1.0f)
 	{
@@ -500,6 +525,7 @@ void AForgingStation::FinishForging()
 		TEXT("Forging sequence complete. Progress: %.0f%%"),
 		CurrentProject->forgingProgress * 100.0f
 	);
+
 }
 
 
