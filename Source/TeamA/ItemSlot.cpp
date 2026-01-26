@@ -26,7 +26,9 @@ AItemSlot::AItemSlot()
     DrawDebugBox(GetWorld(), SocketPoint->GetComponentLocation(), FVector(20.f), FColor::Green, false, 2.f);
 
 	//Set each collision channel to block
-	InteractionVolume->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	InteractionVolume->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	// Set specific channels to block
+	InteractionVolume->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel5, ECollisionResponse::ECR_Overlap);
 
 
 
@@ -35,18 +37,21 @@ AItemSlot::AItemSlot()
 bool AItemSlot::AttachItem(APickup* Item)
 {
     if (!Item || bIsOccupied)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AttachItem failed: Invalid item or slot occupied."));
         return false;
-
+    }
     // Type check
     if (Item->ItemType != AcceptedItemType)
     {
+		UE_LOG(LogTemp, Warning, TEXT("AttachItem failed: Item type mismatch."));
         return false;
     }
 
     // Attach item to socket
     Item->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
     Item->InteractionVolume->SetSimulatePhysics(false);
-    Item->InteractionVolume->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    Item->InteractionVolume->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
     Item->AttachToComponent(
         SocketPoint,

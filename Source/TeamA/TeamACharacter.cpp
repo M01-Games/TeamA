@@ -136,7 +136,7 @@ void ATeamACharacter::OnOverlapBegin(
 	if (OverlappingWorkstation)
 	{
 		// You can add additional logic here if needed when overlapping begins
-		UE_LOG(LogTeamA, Log, TEXT("Overlapping Workstation: %s"), *OverlappingWorkstation->GetName());
+		//UE_LOG(LogTeamA, Log, TEXT("Overlapping Workstation: %s"), *OverlappingWorkstation->GetName());
 	}
 }
 
@@ -207,7 +207,32 @@ APickup* ATeamACharacter::GetPickupInView()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
+	bool bHit = false;
+	// Check for item slot
+	bHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_GameTraceChannel5,
+		Params
+	);
+
+	if (bHit) {
+		if (AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor()))
+		{
+			if (Slot->bIsOccupied)
+			{
+				APickup* Item = Slot->TakeItem();
+				if (Item)
+				{
+					return Item;
+				}
+			}
+		}
+	}
+	bHit = false;
+
+	bHit = GetWorld()->LineTraceSingleByChannel(
 		Hit,
 		Start,
 		End,
@@ -215,25 +240,15 @@ APickup* ATeamACharacter::GetPickupInView()
 		Params
 	);
 
-	if (AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor()))
-	{
-		if (Slot->bIsOccupied)
-		{
-			APickup* Item = Slot->TakeItem();
-			if (Item)
-			{
-				return Item;
-			}
-		}
-	}
+
 
 	if (bHit)
 	{
-
-		UE_LOG(LogTeamA, Log, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
 		return Cast<APickup>(Hit.GetActor());
 	}
-	
+
+
+		
 	return nullptr;
 }
 
@@ -253,19 +268,24 @@ void ATeamACharacter::PickupItem()
 		Params.AddIgnoredActor(this);
 		Params.AddIgnoredActor(HeldItem);
 
-		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_GameTraceChannel5, Params);
+		// Log hit result
+		UE_LOG(LogTeamA, Log, TEXT("Line Trace Hit: %s"), bHit ? TEXT("True") : TEXT("False"));
+
 
 		if (bHit)
 		{
+			UE_LOG(LogTeamA, Log, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
 			AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor());
+			UE_LOG(LogTeamA, Log, TEXT("Casting to AItemSlot: %s"), Slot ? TEXT("Success") : TEXT("Failed"));
 			if (Slot && Slot->AttachItem(HeldItem))
 			{
-				HeldItem->InteractionVolume->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+				// Successfully attached to socket
+				UE_LOG(LogTeamA, Log, TEXT("Item attached to socket: %s"), *Slot->GetName());
 				HeldItem = nullptr;
 				return;
 			}
 		}
-
 
 		// If no socket hit, drop normally
 		HeldItem->GetRootComponent()->DetachFromComponent(
