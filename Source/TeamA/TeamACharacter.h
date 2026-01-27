@@ -7,6 +7,7 @@
 #include "Logging/LogMacros.h"
 #include "Workstation.h"
 #include "Pickup.h"
+#include "FirstPersonWidget.h"
 #include "TeamACharacter.generated.h"
 
 class UInputComponent;
@@ -58,9 +59,18 @@ protected:
 	/** pickup input action */
 	UPROPERTY(EditAnywhere, Category = "Input")
 	class UInputAction* PickupAction;
+
+	// Widget instance (runtime)
+	UPROPERTY()
+	UFirstPersonWidget* FirstPersonWidgetInstance;
+
+
 	
 public:
 	ATeamACharacter();
+
+	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
 
 	UPROPERTY()
 	AWorkstation* CurrentWorkstation;
@@ -70,6 +80,8 @@ public:
 
 	void Interact();
 	void ExitWorkstation();
+
+	void UpdateInteractPrompt();
 
 	UFUNCTION()
 	void OnOverlapBegin(
@@ -100,7 +112,9 @@ public:
 	APickup* HeldItem;
 
 
-
+	// UI Widget for forging
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UUserWidget> FirstPersonWidgetClass;
 
 protected:
 

@@ -25,7 +25,7 @@ using namespace std;
 
 AForgingStation::AForgingStation()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	
 
 	isEntered = false;
 }
@@ -33,12 +33,14 @@ AForgingStation::AForgingStation()
 void AForgingStation::BeginPlay()
 {
 	Super::BeginPlay();
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 // Enter and Exit
 
 void AForgingStation::Enter_Implementation(ACharacter* Character)
 {
+
 	// Ensure we have a valid local player controller and bind input
 	APlayerController* PC = Character
 		? Cast<APlayerController>(Character->GetController())

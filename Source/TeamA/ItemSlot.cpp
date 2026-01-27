@@ -68,11 +68,17 @@ bool AItemSlot::AttachItem(APickup* Item)
 	AActor* ParentActor = GetAttachParentActor();
 	if (ParentActor)
 	{
+		//Log parent actor name
+		UE_LOG(LogTemp, Log, TEXT("ItemSlot parent actor: %s"), *ParentActor->GetName());
 		//If it is, notify the workstation that an item has been attached
 		AWorkstation* Workstation = Cast<AWorkstation>(ParentActor);
+        
 		if (Workstation)
 		{
+			UE_LOG(LogTemp, Log, TEXT("Notifying workstation of attached item: %s"), *Item->GetName());
 			Workstation->Inventory.Add(Item);
+			//LOG current inventory count
+			UE_LOG(LogTemp, Log, TEXT("Workstation inventory count: %d"), Workstation->Inventory.Num());
 		}
 	}
 
@@ -85,21 +91,51 @@ void AItemSlot::DetachItem()
     if (!AttachedItem)
         return;
 
+    APickup* Item = AttachedItem;
+
+    AActor* ParentActor = GetAttachParentActor();
+    if (ParentActor)
+    {
+        //If it is, notify the workstation that an item has been removed
+        AWorkstation* Workstation = Cast<AWorkstation>(ParentActor);
+        if (Workstation)
+        {
+            Workstation->Inventory.Remove(Item);
+        }
+    }
+
     AttachedItem->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
     AttachedItem->InteractionVolume->SetSimulatePhysics(true);
     AttachedItem->InteractionVolume->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
     AttachedItem = nullptr;
     bIsOccupied = false;
+
 }
 
 void AItemSlot::DeleteItem()
 {
     if (!AttachedItem)
         return;
+
+    APickup* Item = AttachedItem;
+
+    AActor* ParentActor = GetAttachParentActor();
+    if (ParentActor)
+    {
+        //If it is, notify the workstation that an item has been removed
+        AWorkstation* Workstation = Cast<AWorkstation>(ParentActor);
+        if (Workstation)
+        {
+            Workstation->Inventory.Remove(Item);
+        }
+    }
+
     AttachedItem->Destroy();
     AttachedItem = nullptr;
     bIsOccupied = false;
+
+ 
 }
 
 APickup* AItemSlot::TakeItem()

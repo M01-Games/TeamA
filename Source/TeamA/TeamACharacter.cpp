@@ -53,7 +53,98 @@ ATeamACharacter::ATeamACharacter()
 	HoldPoint->SetupAttachment(FirstPersonCameraComponent);
 	HoldPoint->SetRelativeLocation(FVector(100.f, 0.f, -10.f));
 
+	// can tick every frame
+	PrimaryActorTick.bCanEverTick = true;
+}
 
+// Begin play
+void ATeamACharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	if (FirstPersonWidgetClass)
+	{
+		FirstPersonWidgetInstance = CreateWidget<UFirstPersonWidget>(
+			GetWorld(),
+			FirstPersonWidgetClass
+		);
+
+		if (FirstPersonWidgetInstance)
+		{
+			FirstPersonWidgetInstance->AddToViewport();
+		}
+
+		FirstPersonWidgetInstance->ShowCrosshair(true);
+		FirstPersonWidgetInstance->ShowInteractPrompt(false);
+	}
+}
+
+// tick
+void ATeamACharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateInteractPrompt();
+	
+}
+
+void ATeamACharacter::UpdateInteractPrompt()
+{
+	if (!FirstPersonWidgetInstance)
+	{
+		return;
+	}
+
+	//if in a workstation, no prompts
+	if (CurrentWorkstation)
+	{
+		FirstPersonWidgetInstance->ShowInteractPrompt(false);
+		return;
+	}
+
+	
+
+	if (HeldItem)
+	{
+		// Line trace or overlap to detect socket
+		FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+		FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * PickupRange);
+
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		Params.AddIgnoredActor(HeldItem);
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_GameTraceChannel5, Params);
+
+		if (bHit)
+		{
+			AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor());
+			if (Slot && Slot->AcceptedItemType == HeldItem->ItemType)
+			{
+				FirstPersonWidgetInstance->ShowInteractPrompt(true);
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to place item"));
+				return;
+			}
+		}
+	}
+	else {
+		APickup* PickupInView = GetPickupInView();
+		if (PickupInView)
+		{
+			FirstPersonWidgetInstance->ShowInteractPrompt(true);
+			FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to pick up item"));
+			return;
+		}
+	}
+
+	if (OverlappingWorkstation) {
+		//Show interact prompt
+		FirstPersonWidgetInstance->ShowInteractPrompt(true);
+		FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'E' to enter"));
+		return;
+	}
+
+	FirstPersonWidgetInstance->ShowInteractPrompt(false);
 }
 
 void ATeamACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -174,7 +265,12 @@ void ATeamACharacter::Interact()
 
 	// Disable item pickup input while at workstation
 
-
+	//Hide UI crosshair and interact prompt
+	if (FirstPersonWidgetInstance)
+	{
+		FirstPersonWidgetInstance->ShowCrosshair(false);
+		FirstPersonWidgetInstance->ShowInteractPrompt(false);
+	}
 
 
 }
@@ -194,6 +290,12 @@ void ATeamACharacter::ExitWorkstation()
 
 	CurrentWorkstation->Exit(this);
 	CurrentWorkstation = nullptr;
+
+	//Show the UI crosshair
+	if (FirstPersonWidgetInstance)
+	{
+		FirstPersonWidgetInstance->ShowCrosshair(true);
+	}
 }
 
 
