@@ -258,6 +258,9 @@ void ATeamACharacter::Interact()
 
 	// Disable movement
 	GetCharacterMovement()->DisableMovement();
+	//Disable look rotation
+	GetController()->SetIgnoreLookInput(true);
+
 
 	// Switch camera
 	FViewTargetTransitionParams Params;
@@ -292,6 +295,8 @@ void ATeamACharacter::ExitWorkstation()
 	PC->SetViewTarget(this, Params);
 
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	//Enable look rotation
+	GetController()->SetIgnoreLookInput(false);
 
 	CurrentWorkstation->Exit(this);
 	CurrentWorkstation = nullptr;
