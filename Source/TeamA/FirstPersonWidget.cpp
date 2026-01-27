@@ -39,3 +39,19 @@ void UFirstPersonWidget::SetCrosshairColor(const FLinearColor& NewColor)
 	}
 }
 
+void UFirstPersonWidget::UpdateEnterPrompt(const FString& NewText)
+{
+	if (EnterPrompt)
+	{
+		EnterPrompt->SetText(FText::FromString(NewText));
+	}
+}
+
+void UFirstPersonWidget::ShowEnterPrompt(bool bShow)
+{
+	if (EnterPrompt)
+	{
+		EnterPrompt->SetVisibility(bShow ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+}
+

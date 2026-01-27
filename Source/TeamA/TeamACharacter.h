@@ -134,6 +134,7 @@ protected:
 
 	/** Get the pickup actor in view */
 	APickup* GetPickupInView();
+	APickup* GetPickupInViewNoTake();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	virtual void ItemInteract();

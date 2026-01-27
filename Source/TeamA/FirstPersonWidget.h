@@ -23,10 +23,16 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* InteractPrompt;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* EnterPrompt;
+
 	void UpdateInteractPrompt(const FString& NewText);
 	void ShowInteractPrompt(bool bShow);
 
 	void ShowCrosshair(bool bShow);
 	void SetCrosshairColor(const FLinearColor& NewColor);
+
+	void UpdateEnterPrompt(const FString& NewText);
+	void ShowEnterPrompt(bool bShow);
 
 };

@@ -75,6 +75,7 @@ void ATeamACharacter::BeginPlay()
 
 		FirstPersonWidgetInstance->ShowCrosshair(true);
 		FirstPersonWidgetInstance->ShowInteractPrompt(false);
+		FirstPersonWidgetInstance->ShowEnterPrompt(false);
 	}
 }
 
@@ -98,10 +99,19 @@ void ATeamACharacter::UpdateInteractPrompt()
 	if (CurrentWorkstation)
 	{
 		FirstPersonWidgetInstance->ShowInteractPrompt(false);
+		FirstPersonWidgetInstance->ShowEnterPrompt(false);
 		return;
 	}
 
-	
+	if (OverlappingWorkstation) {
+		//Show interact prompt
+		FirstPersonWidgetInstance->ShowEnterPrompt(true);
+		FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT("Press 'E' to enter"));
+	}
+	else {
+		FirstPersonWidgetInstance->ShowEnterPrompt(false);
+	}
+
 
 	if (HeldItem)
 	{
@@ -128,7 +138,8 @@ void ATeamACharacter::UpdateInteractPrompt()
 		}
 	}
 	else {
-		APickup* PickupInView = GetPickupInView();
+		
+		APickup* PickupInView = GetPickupInViewNoTake();
 		if (PickupInView)
 		{
 			FirstPersonWidgetInstance->ShowInteractPrompt(true);
@@ -137,12 +148,6 @@ void ATeamACharacter::UpdateInteractPrompt()
 		}
 	}
 
-	if (OverlappingWorkstation) {
-		//Show interact prompt
-		FirstPersonWidgetInstance->ShowInteractPrompt(true);
-		FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'E' to enter"));
-		return;
-	}
 
 	FirstPersonWidgetInstance->ShowInteractPrompt(false);
 }
@@ -413,6 +418,56 @@ APickup* ATeamACharacter::GetPickupInView()
 			if (Slot->bIsOccupied)
 			{
 				APickup* Item = Slot->TakeItem();
+				if (Item)
+				{
+					return Item;
+				}
+			}
+		}
+	}
+	bHit = false;
+
+	bHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_GameTraceChannel4,
+		Params
+	);
+
+	if (bHit)
+	{
+		return Cast<APickup>(Hit.GetActor());
+	}
+
+	return nullptr;
+}
+
+APickup* ATeamACharacter::GetPickupInViewNoTake() 
+{
+	FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+	FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * 300.0f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = false;
+	// Check for item slot
+	bHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_GameTraceChannel5,
+		Params
+	);
+
+	if (bHit) {
+		if (AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor()))
+		{
+			if (Slot->bIsOccupied)
+			{
+				APickup* Item = Slot->AttachedItem;
 				if (Item)
 				{
 					return Item;
