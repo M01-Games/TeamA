@@ -11,5 +11,7 @@ enum class EItemTypesEnum : uint8
 {
     Ore UMETA(DisplayName = "Ore"),
     Project UMETA(DisplayName = "Project"),
-    Money UMETA(DisplayName = "Money")
+    Money UMETA(DisplayName = "Money"),
+	Handle UMETA(DisplayName = "Handle"),
+	MOULD UMETA(DisplayName = "Mould")
 };
