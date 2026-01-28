@@ -12,8 +12,6 @@ AItemSlot::AItemSlot()
     SocketPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SocketPoint"));
     RootComponent = SocketPoint;
 
-
-
     bIsOccupied = false;
     AttachedItem = nullptr;
 
@@ -28,7 +26,7 @@ AItemSlot::AItemSlot()
 	//Set each collision channel to block
 	InteractionVolume->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	// Set specific channels to block
-	InteractionVolume->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel5, ECollisionResponse::ECR_Overlap);
+	InteractionVolume->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel5, ECollisionResponse::ECR_Block);
 
 
 

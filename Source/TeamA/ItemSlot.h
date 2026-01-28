@@ -42,17 +42,17 @@ public:
 
     /** Try to attach an item to this socket */
     UFUNCTION(BlueprintCallable)
-    bool AttachItem(APickup* Item);
+    virtual bool AttachItem(APickup* Item);
 
     /** Detach the currently attached item */
     UFUNCTION(BlueprintCallable)
-    void DetachItem();
+    virtual void DetachItem();
 
 	/** Delete the currently attached item */
     UFUNCTION(BlueprintCallable)
-	void DeleteItem();
+    virtual void DeleteItem();
 
     UFUNCTION(BlueprintCallable)
-    APickup* TakeItem();
+    virtual APickup* TakeItem();
 
 };
