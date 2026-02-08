@@ -19,7 +19,9 @@ public class TeamA : ModuleRules
 			"GameplayStateTreeModule",
 			"UMG",
 			"Slate",
-			"Niagara"
+			"SlateCore",
+			"NNE",
+            "Niagara"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
