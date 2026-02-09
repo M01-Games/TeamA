@@ -97,6 +97,7 @@ public:
 
 protected:
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
 	virtual void Enter_Implementation(class ACharacter* PC) override;
 	virtual void Exit_Implementation(class ACharacter* PC) override;
 
