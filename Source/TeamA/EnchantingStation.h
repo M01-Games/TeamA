@@ -147,7 +147,7 @@ protected:
 
 	// AI Class labels
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	TArray<FString> RuneClasses = { TEXT("Circle"), TEXT("Rectangle"), TEXT("Triangle") };
+	TArray<FString> RuneClasses;
 
 	TSharedPtr<FMyModelHelper> ModelHelper;
 
