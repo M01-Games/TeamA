@@ -36,51 +36,10 @@
 #include "DrawDebugHelpers.h"
 
 
-
-
-void AEnchantingStation::Enter_Implementation(ACharacter* Character)
+void AEnchantingStation::BeginPlay()
 {
-    APlayerController* PC = Character ? Cast<APlayerController>(Character->GetController()) : nullptr;
-    if (!PC || !PC->IsLocalController()) return;
+    Super::BeginPlay();
 
-    CachedPC = PC;
-
-    // Create brush material
-    if (RuneBrushMaterial)
-    {
-        RuneBrushMID = UMaterialInstanceDynamic::Create(RuneBrushMaterial, this);
-    }
-
-    // Create render target
-    CreateRuneRenderTarget();
-    ClearRuneRenderTarget();
-
-    // Create render target material (to display on UImage)
-    if (RuneRenderTargetMaterial)
-    {
-        RuneRenderTargetMID = UMaterialInstanceDynamic::Create(RuneRenderTargetMaterial, this);
-        if (RuneRenderTargetMID && RuneRenderTarget)
-        {
-            RuneRenderTargetMID->SetTextureParameterValue(TEXT("RuneTexture"), RuneRenderTarget);
-        }
-    }
-
-    // Bind input
-    BindInput(PC);
-
-    // Show cursor
-    PC->bShowMouseCursor = true;
-    FInputModeGameAndUI InputMode;
-    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-    InputMode.SetHideCursorDuringCapture(false);
-    PC->SetInputMode(InputMode);
-
-    PrimaryActorTick.bCanEverTick = true;
-
-    CreateEnchantingWidget();
-
-
-    
     // Setup AI model if in GameplayAI mode
     if (EnchantingMode == EEnchantingMode::GameplayAI && RuneClassifierModel)
     {
@@ -181,6 +140,50 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
 
         UE_LOG(LogTemp, Log, TEXT("AI model initialized successfully"));
     }
+}
+
+void AEnchantingStation::Enter_Implementation(ACharacter* Character)
+{
+    APlayerController* PC = Character ? Cast<APlayerController>(Character->GetController()) : nullptr;
+    if (!PC || !PC->IsLocalController()) return;
+
+    CachedPC = PC;
+
+    // Create brush material
+    if (RuneBrushMaterial)
+    {
+        RuneBrushMID = UMaterialInstanceDynamic::Create(RuneBrushMaterial, this);
+    }
+
+    // Create render target
+    CreateRuneRenderTarget();
+    ClearRuneRenderTarget();
+
+    // Create render target material (to display on UImage)
+    if (RuneRenderTargetMaterial)
+    {
+        RuneRenderTargetMID = UMaterialInstanceDynamic::Create(RuneRenderTargetMaterial, this);
+        if (RuneRenderTargetMID && RuneRenderTarget)
+        {
+            RuneRenderTargetMID->SetTextureParameterValue(TEXT("RuneTexture"), RuneRenderTarget);
+        }
+    }
+
+    // Bind input
+    BindInput(PC);
+
+    // Show cursor
+    PC->bShowMouseCursor = true;
+    FInputModeGameAndUI InputMode;
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    InputMode.SetHideCursorDuringCapture(false);
+    PC->SetInputMode(InputMode);
+
+    PrimaryActorTick.bCanEverTick = true;
+
+    CreateEnchantingWidget();
+    
+    
 }
 
 bool AEnchantingStation::PrepareInputTensor()
