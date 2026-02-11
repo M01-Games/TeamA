@@ -93,24 +93,18 @@ FVector2D UForgingWidget::GetCanvasSize() const
 
 void UForgingWidget::SetForgeTargetPercent(float NewPercent)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Setting ForgeTarget percent to: %f"), NewPercent);
 	if (ForgeTarget)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ForgeTarget is valid"));
 		//Get size of parent widget of ForgeTarget
 		if (ForgeTarget->GetParent())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ForgeTarget has a parent"));
 			UOverlay* ParentOverlay = Cast<UOverlay>(ForgeTarget->GetParent());
-			UE_LOG(LogTemp, Warning, TEXT("ParentOverlay: %s"), *GetNameSafe(ParentOverlay));
 			//Get size of parent overlay
 			if (ParentOverlay)
 			{
 				FVector2D ParentSize = ParentOverlay->GetCachedGeometry().GetLocalSize();
-				UE_LOG(LogTemp, Warning, TEXT("ParentOverlay size: %s"), *ParentSize.ToString());
 				//Calculate new position based on percent
 				float NewY = -(ParentSize.Y * (NewPercent-0.5));
-				UE_LOG(LogTemp, Warning, TEXT("Setting ForgeTarget Y position to: %f"), NewY);
 				//Set transform translation
 				ForgeTarget->SetRenderTranslation(FVector2D(0.0f, NewY));
 

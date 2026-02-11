@@ -34,7 +34,8 @@ public:
 
 	void FinalizeForgingScore();
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GrainStrength = 0.0f;
 
 	UFUNCTION(BlueprintNativeEvent)
 	void ForgeModel();

@@ -268,6 +268,16 @@ void AForgingStation::StartForgingSequence()
 	float MinZ = LocalBounds.Min.Z;
 	float MaxZ = LocalBounds.Max.Z;
 
+	UE_LOG(LogTemp, Warning, TEXT("Blade Z bounds: %.2f to %.2f"), MinZ, MaxZ);
+
+	UE_LOG(LogTemp, Warning, TEXT("Mesh scale: %s"),
+		*BladeMesh->GetComponentScale().ToString());
+
+	// Adjust bounds based on scale
+	MinZ *= BladeMesh->GetComponentScale().Z;
+	MaxZ *= BladeMesh->GetComponentScale().Z;
+
+
 	// Safety clamp (avoid hilt & tip)
 	MinZ = FMath::Lerp(MinZ, MaxZ, 0.1f);
 	MaxZ = FMath::Lerp(MinZ, MaxZ, 0.9f);
@@ -424,6 +434,12 @@ void AForgingStation::ProcessHammerInput()
 
 	case EForgeHitQuality::Bad:
 		EffectScale *= 0.7f;
+		//Find the Grain Strength parameter of the current project and increase it by a small amount as a penalty for bad hits
+		CurrentProject->GrainStrength += 0.05f;
+		UE_LOG(LogTemp, Warning, TEXT("Grain Strength increased to %.2f"), CurrentProject->GrainStrength);
+
+
+
 		break;
 	}
 
