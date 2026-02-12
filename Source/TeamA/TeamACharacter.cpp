@@ -437,7 +437,7 @@ void ATeamACharacter::PickupItem()
 
 	// Disable physics
 	Pickup->InteractionVolume->SetSimulatePhysics(false);
-	Pickup->InteractionVolume->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Pickup->InteractionVolume->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Pickup->InteractionVolume->SetEnableGravity(false);
 
 	// Attach to hold point

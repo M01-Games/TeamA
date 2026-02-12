@@ -194,6 +194,8 @@ void AForgingStation::Tick(float DeltaTime)
 		if (isForging)
 		{
 			float FillSpeed = 1.0f / HammerFillDuration;
+			FillSpeed *= 1 - (2 * (CurrentProject->HeatIntensity / 100.0f) - 2); // Adjust fill speed based on heat, hotter = faster)
+
 			CurrentHammerFill += DeltaTime * FillSpeed;
 			CurrentHammerFill = FMath::Clamp(CurrentHammerFill, -HammerFillDelay, 1.0f);
 			CurrentTargetValue = CurrentForgingPattern.IsValidIndex(CurrentHammerIndex)

@@ -37,10 +37,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float GrainStrength = 0.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HeatIntensity;
+
+	bool bIsInHeat = false;
+
 	UFUNCTION(BlueprintNativeEvent)
 	void ForgeModel();
 
+
+
 protected:
+	// On overlap stay event
+	void NotifyActorBeginOverlap(AActor* OtherActor) override;
+	void NotifyActorEndOverlap(AActor* OtherActor) override;
 
-
+	// tick
+	virtual void Tick(float DeltaTime) override;
 };

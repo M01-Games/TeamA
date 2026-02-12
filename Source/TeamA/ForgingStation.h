@@ -110,10 +110,10 @@ protected:
 	float CurrentHammerFill = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Forging")
-	float HammerFillDuration = 1.5f;
+	float HammerFillDuration = 1.f;
 
 	UPROPERTY(EditAnywhere, Category = "Forging")
-	float HammerFillDelay = 0.5f;
+	float HammerFillDelay = 0.4f;
 
 	// Cached pattern length
 	int32 TotalHammerHits = 0;

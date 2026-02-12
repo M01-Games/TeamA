@@ -18,6 +18,18 @@ AProject::AProject()
 	ForgingPattern = { 0.3, 0.3, 0.9 }; // Example pattern
 }
 
+void AProject::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+
+	if (bIsInHeat) {
+		HeatIntensity += DeltaTime * 10.0f; // Increase heat over time when in heat source 
+		HeatIntensity = FMath::Clamp(HeatIntensity, 0.0f, 100.0f); }
+	else {
+		HeatIntensity -= DeltaTime * 3.0f; // Cool down when not in heat source 
+		HeatIntensity = FMath::Clamp(HeatIntensity, 0.0f, 100.0f);
+	}
+}
+
 void AProject::FinalizeForgingScore()
 {
 	if (TotalForgeHits <= 0)
@@ -36,4 +48,21 @@ void AProject::FinalizeForgingScore()
 void AProject::ForgeModel_Implementation()
 {
 
+}
+
+void AProject::NotifyActorBeginOverlap(AActor* OtherActor) {
+	Super::NotifyActorBeginOverlap(OtherActor); 
+	// If the other actor has the Heat tag
+	if (OtherActor->ActorHasTag("Heat"))
+	{
+		bIsInHeat = true;
+	}
+} 
+
+void AProject::NotifyActorEndOverlap(AActor* OtherActor) {
+	Super::NotifyActorEndOverlap(OtherActor);
+	if (OtherActor->ActorHasTag("Heat")) 
+	{ 
+		bIsInHeat = false;
+	}
 }
