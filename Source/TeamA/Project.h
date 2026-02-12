@@ -45,6 +45,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void ForgeModel();
 
+	//Array of strings representing the inscribed runes
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) 
+	TArray<FString> InscribedRunes;
+
+	bool bIsEnchanted = false;
 
 
 protected:

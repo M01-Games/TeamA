@@ -21,4 +21,12 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UImage* RuneImage;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* EnchantingPrompt;
+
+
+
+	void UpdateEnchantingPrompt(const FString& NewText);
+	void ShowEnchantingPrompt(bool bShow);
+
 };

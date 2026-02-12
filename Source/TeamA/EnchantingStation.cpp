@@ -33,6 +33,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/AssetManager.h"
 #include "NNERuntimeRunSync.h"
+#include "EnchantingWidget.h"
 #include "DrawDebugHelpers.h"
 
 
@@ -149,6 +150,8 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
 
     CachedPC = PC;
 
+
+
     // Create brush material
     if (RuneBrushMaterial)
     {
@@ -181,8 +184,26 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
 
     PrimaryActorTick.bCanEverTick = true;
 
-    CreateEnchantingWidget();
     
+    CreateEnchantingWidget();
+
+    //If inventory is empty
+    if (Inventory.IsEmpty())
+    {
+        EnchantingWidget->ShowEnchantingPrompt(true);
+        EnchantingWidget->UpdateEnchantingPrompt(TEXT("No item to enchant"));
+        return;
+    }
+    else {
+
+        CurrentProject = Cast<AProject>(Inventory[0]);
+
+        if (CurrentProject->bIsEnchanted) { EnchantingWidget->ShowEnchantingPrompt(true); EnchantingWidget->UpdateEnchantingPrompt(TEXT("Item already enchanted")); return; }
+
+        EnchantingWidget->ShowEnchantingPrompt(true);
+        EnchantingWidget->UpdateEnchantingPrompt(TEXT("Draw a rune to enchant the item!"));
+    }
+
     
 }
 
@@ -253,16 +274,24 @@ FString AEnchantingStation::ClassifyRune()
 
     static const TArray<FString> CLASSES = RuneClasses;
 
-    AsyncTask(ENamedThreads::AnyNormalThreadNormalTask, [Helper = ModelHelper]()
+    // Store a weak pointer to this object to safely access it later
+    TWeakObjectPtr<AEnchantingStation> WeakThis(this);
+
+    AsyncTask(ENamedThreads::AnyNormalThreadNormalTask, [Helper = ModelHelper, WeakThis]()
         {
             // Run model synchronously
             Helper->ModelInstance->RunSync(Helper->InputBindings, Helper->OutputBindings);
 
-            AsyncTask(ENamedThreads::GameThread, [Helper]()
+            AsyncTask(ENamedThreads::GameThread, [Helper, WeakThis]()
                 {
                     Helper->bIsRunning = false;
 
-                    
+                    // Check if the object is still valid
+                    if (!WeakThis.IsValid())
+                    {
+                        return;
+                    }
+
                     int32 NumClasses = Helper->OutputData.Num();
 
                     // --- Apply softmax to get probabilities ---
@@ -314,7 +343,9 @@ FString AEnchantingStation::ClassifyRune()
                     }
 
                     FString DetectedRune = CLASSES.IsValidIndex(MaxIdx) ? CLASSES[MaxIdx] : TEXT("Unknown");
-                    UE_LOG(LogTemp, Log, TEXT("Detected rune: %s"), *DetectedRune);
+
+                    // Now use the result - call a method on the object
+                    WeakThis->OnRuneClassified(DetectedRune);
                 });
         });
 
@@ -360,6 +391,11 @@ void AEnchantingStation::Tick(float DeltaTime)
 
 void AEnchantingStation::StartDrawing()
 {
+    if (CurrentProject->bIsEnchanted)
+    {
+		return;
+    }
+
     // Start a new stroke
     bIsDrawing = true;
     bHasLastUV = false;
@@ -368,6 +404,7 @@ void AEnchantingStation::StartDrawing()
     CurrentStroke.Reset();
 
     UE_LOG(LogTemp, Log, TEXT("Started new stroke"));
+	EnchantingWidget->ShowEnchantingPrompt(false);
 }
 
 
@@ -380,10 +417,17 @@ void AEnchantingStation::StopDrawing()
         CurrentStroke.Reset();
     }
     bHasLastUV = false;
+	EnchantingWidget->ShowEnchantingPrompt(true); 
+    EnchantingWidget->UpdateEnchantingPrompt(TEXT("Press space to finish the rune"));
 }
 
 void AEnchantingStation::FinishRune()
 {
+    if (CurrentProject && CurrentProject->bIsEnchanted)
+    {
+        return;
+    }
+
     UE_LOG(LogTemp, Log, TEXT("Finished Rune with %d strokes"), RuneStrokes.Num());
     FString FileName = FString::Printf(TEXT("Rune_%d.png"), FDateTime::Now().GetTicks());
 
@@ -394,8 +438,9 @@ void AEnchantingStation::FinishRune()
     }
     else
     {
-        FString rune = ClassifyRune();
-        UE_LOG(LogTemp, Log, TEXT("Classified Rune as: %s"), *rune);
+        // Start async classification - result will come back via OnRuneClassified
+        // DO NOT call OnRuneClassified here - it will be called automatically when classification completes
+        ClassifyRune();
         ExportRune(FileName);
     }
 
@@ -454,7 +499,7 @@ void AEnchantingStation::CreateEnchantingWidget()
     if (!EnchantingWidgetClass || EnchantingWidget)
         return;
 
-    EnchantingWidget = CreateWidget<UUserWidget>(GetWorld(), EnchantingWidgetClass);
+    EnchantingWidget = CreateWidget<UEnchantingWidget>(GetWorld(), EnchantingWidgetClass);
     if (!EnchantingWidget)
         return;
 
@@ -602,5 +647,87 @@ void AEnchantingStation::ExportRune(const FString& FileName)
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("Failed to save rune PNG"));
+    }
+}
+
+void AEnchantingStation::OnRuneClassified(const FString& RuneName)
+{
+    if (!CurrentProject)
+    {
+        return;
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("Classified Rune as: %s"), *RuneName);
+    
+    CurrentProject->InscribedRunes.Add(RuneName);
+
+    if (CurrentProject->InscribedRunes.Num() >= 3)
+    {
+        CurrentProject->bIsEnchanted = true;
+        if (EnchantingWidget)
+        {
+            EnchantingWidget->ShowEnchantingPrompt(true);
+            EnchantingWidget->UpdateEnchantingPrompt(TEXT("Item fully enchanted!"));
+        }
+
+        // Apply enchantment effect based on the runes inscribed 
+        FString EnchantmentKey = FString::Join(CurrentProject->InscribedRunes, TEXT("")); 
+        UE_LOG(LogTemp, Log, TEXT("Enchantment Key: %s"), *EnchantmentKey);
+        
+        if (Enchantments.Contains(EnchantmentKey)) 
+        { 
+            UMaterialInstance* EnchantmentEffect = Enchantments[EnchantmentKey];
+            
+            if (EnchantmentEffect && CurrentProject->SkeletalMesh)
+            {
+                // Log the name of the enchantment applied for debugging 
+                UE_LOG(LogTemp, Log, TEXT("Applied Enchantment: %s"), *EnchantmentKey); 
+                
+                // Set the overlay material
+                CurrentProject->SkeletalMesh->SetOverlayMaterial(EnchantmentEffect);
+                
+                // Force the component to update
+                CurrentProject->SkeletalMesh->MarkRenderStateDirty();
+                
+                // Verify it was set
+                if (CurrentProject->SkeletalMesh->GetOverlayMaterial())
+                {
+                    UE_LOG(LogTemp, Log, TEXT("Applied enchantment effect to item mesh: %s"), 
+                        *CurrentProject->SkeletalMesh->GetOverlayMaterial()->GetName());
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Failed to set overlay material!"));
+                }
+            }
+            else
+            {
+                if (!EnchantmentEffect)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("EnchantmentEffect is null for key: %s"), *EnchantmentKey);
+                }
+                if (!CurrentProject->SkeletalMesh)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("CurrentProject->SkeletalMesh is null!"));
+                }
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("No enchantment found for key: %s"), *EnchantmentKey);
+        }
+    }
+    else 
+    {
+        if (EnchantingWidget)
+        {
+            EnchantingWidget->ShowEnchantingPrompt(true);
+            EnchantingWidget->UpdateEnchantingPrompt(
+                FString::Printf(TEXT("Inscribed with Rune: %s, %d more rune%s needed"), 
+                *RuneName, 
+                3 - CurrentProject->InscribedRunes.Num(),
+                (3 - CurrentProject->InscribedRunes.Num()) == 1 ? TEXT("") : TEXT("s"))
+            );
+        }
     }
 }

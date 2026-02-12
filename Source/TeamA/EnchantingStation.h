@@ -14,6 +14,8 @@
 #include "NNE.h"
 #include "NNEModelData.h"
 #include "NNERuntimeCPU.h"
+#include "EnchantingWidget.h"
+#include "Project.h"
 #include "EnchantingStation.generated.h"
 
 UENUM(BlueprintType)
@@ -65,7 +67,7 @@ public:
 	TSubclassOf<UUserWidget> EnchantingWidgetClass;
 
 	UPROPERTY()
-	UUserWidget* EnchantingWidget;
+	UEnchantingWidget* EnchantingWidget;
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Rune Drawing")
@@ -92,7 +94,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TObjectPtr<UNNEModelData> RuneClassifierModel;
 
+	AProject* CurrentProject;
 
+	// Dictionary of encahntments
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enchantments")
+	TMap<FString, UMaterialInstance*> Enchantments;
 
 
 protected:
@@ -153,4 +159,9 @@ protected:
 
 	bool PrepareInputTensor();
 	FString ClassifyRune();
+
+	// Add this method declaration
+	void OnRuneClassified(const FString& RuneName);
+
+	
 };
