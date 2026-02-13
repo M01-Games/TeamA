@@ -391,6 +391,10 @@ void AEnchantingStation::Tick(float DeltaTime)
 
 void AEnchantingStation::StartDrawing()
 {
+    if (!CurrentProject)
+    {
+        return;
+	}
     if (CurrentProject->bIsEnchanted)
     {
 		return;
@@ -410,6 +414,10 @@ void AEnchantingStation::StartDrawing()
 
 void AEnchantingStation::StopDrawing()
 {
+    if (!CurrentProject)
+    {
+        return;
+    }
     bIsDrawing = false;
     if (CurrentStroke.Num() > 0)
     {
@@ -423,6 +431,10 @@ void AEnchantingStation::StopDrawing()
 
 void AEnchantingStation::FinishRune()
 {
+    if (!CurrentProject)
+    {
+        return;
+    }
     if (CurrentProject && CurrentProject->bIsEnchanted)
     {
         return;
