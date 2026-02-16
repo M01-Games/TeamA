@@ -10,6 +10,7 @@
 #include "ForgingWidget.h"
 #include "ForgingTargetActor.h"
 #include "NiagaraSystem.h"
+
 #include "ForgingStation.generated.h"
 
 /**
@@ -143,7 +144,7 @@ protected:
 	//
 	//
 	UFUNCTION(BlueprintImplementableEvent, Category = "Forging|Visuals")
-	void PlayHammerAnimation(int32 HammerIndex, EForgeHitQuality Quality);
+	void PlayHammerAnimation(int32 HammerIndex, FVector location);
 	//
 	//
 

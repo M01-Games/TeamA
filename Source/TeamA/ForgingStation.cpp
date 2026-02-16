@@ -405,7 +405,7 @@ void AForgingStation::ProcessHammerInput()
 
 
 	//PlayHammerAnimation(HitWorldPos, FinalQuality);
-	PlayHammerAnimation(CurrentHammerIndex, FinalQuality);
+	PlayHammerAnimation(CurrentHammerIndex, HitWorldPos);
 
 
 	UE_LOG(
