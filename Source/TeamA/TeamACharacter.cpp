@@ -214,8 +214,8 @@ void ATeamACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ATeamACharacter::LookInput);
 
 		// Interacting
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ATeamACharacter::Interact);
-		EnhancedInputComponent->BindAction(ExitWorkstationAction, ETriggerEvent::Triggered, this, &ATeamACharacter::ExitWorkstation);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATeamACharacter::Interact);
+		EnhancedInputComponent->BindAction(ExitWorkstationAction, ETriggerEvent::Started, this, &ATeamACharacter::ExitWorkstation);
 
 		// Pickup
 		EnhancedInputComponent->BindAction(PickupAction, ETriggerEvent::Started, this, &ATeamACharacter::ItemInteract);
