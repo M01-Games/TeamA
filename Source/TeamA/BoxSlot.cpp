@@ -130,6 +130,39 @@ void ABoxSlot::DeleteItem()
 	}
 }
 
+void ABoxSlot::DeleteAll() {
+	if (ContainedItems.Num() == 0)
+		return;
+	int i = ContainedItems.Num();
+
+	AActor* ParentActor = GetAttachParentActor();
+	AWorkstation* Workstation = Cast<AWorkstation>(ParentActor);
+
+	for (int x = 0; x < i; x++) {
+		APickup* Item = ContainedItems.Pop();
+		if (ParentActor)
+		{
+			if (Workstation)
+			{
+				Workstation->Inventory.Remove(Item);
+			}
+		}
+		Item->Destroy();
+		if (ContainedItems.Num() > 0)
+		{
+			AttachedItem = ContainedItems.Last();
+			AttachedItem->SetActorHiddenInGame(false);
+		}
+		else
+		{
+			AttachedItem = nullptr;
+			bIsOccupied = false;
+		}
+	}
+
+	
+}
+
 APickup* ABoxSlot::TakeItem()
 {
 	if (ContainedItems.Num() == 0)
