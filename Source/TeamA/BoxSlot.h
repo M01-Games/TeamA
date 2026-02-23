@@ -34,6 +34,9 @@ public:
 
 	virtual void DeleteItem() override;
 
+	UFUNCTION(BlueprintCallable)
+	void DeleteAll();
+
 
 	APickup* TakeItem() override;
 
