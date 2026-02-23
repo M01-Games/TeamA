@@ -344,6 +344,17 @@ FString AEnchantingStation::ClassifyRune()
 
                     FString DetectedRune = CLASSES.IsValidIndex(MaxIdx) ? CLASSES[MaxIdx] : TEXT("Unknown");
 
+                    // --- Enforce 50% confidence threshold ---
+                    if (MaxVal < 0.61f)
+                    {
+                        DetectedRune = TEXT("INVALID");
+                        UE_LOG(LogTemp, Warning, TEXT("No rune met 50%% confidence threshold. Marked as INVALID."));
+                    }
+                    else
+                    {
+                        DetectedRune = CLASSES.IsValidIndex(MaxIdx) ? CLASSES[MaxIdx] : TEXT("Unknown");
+                    }
+
                     // Now use the result - call a method on the object
                     WeakThis->OnRuneClassified(DetectedRune);
                 });
@@ -671,16 +682,25 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
 
     UE_LOG(LogTemp, Log, TEXT("Classified Rune as: %s"), *RuneName);
     
+	// if the rune is "INVALID", do not add it to the list and show an error message
+    if (RuneName == TEXT("INVALID"))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Invalid rune drawn!"));
+        if (EnchantingWidget)
+        {
+            EnchantingWidget->ShowEnchantingPrompt(true);
+            EnchantingWidget->UpdateEnchantingPrompt(TEXT("Invalid rune drawn! Try again."));
+        }
+        return;
+	}
+
+
     CurrentProject->InscribedRunes.Add(RuneName);
 
     if (CurrentProject->InscribedRunes.Num() >= 3)
     {
-        CurrentProject->bIsEnchanted = true;
-        if (EnchantingWidget)
-        {
-            EnchantingWidget->ShowEnchantingPrompt(true);
-            EnchantingWidget->UpdateEnchantingPrompt(TEXT("Item fully enchanted!"));
-        }
+        
+        
 
         // Apply enchantment effect based on the runes inscribed 
         FString EnchantmentKey = FString::Join(CurrentProject->InscribedRunes, TEXT("")); 
@@ -706,6 +726,15 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
                 {
                     UE_LOG(LogTemp, Log, TEXT("Applied enchantment effect to item mesh: %s"), 
                         *CurrentProject->SkeletalMesh->GetOverlayMaterial()->GetName());
+
+                    CurrentProject->bIsEnchanted = true;
+                    if (EnchantingWidget)
+                    {
+                        EnchantingWidget->ShowEnchantingPrompt(true);
+                        EnchantingWidget->UpdateEnchantingPrompt(
+                            FString::Printf(TEXT("Enchantment Applied: %s"), *EnchantmentKey)
+						);
+                    }
                 }
                 else
                 {
@@ -727,6 +756,16 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
         else
         {
             UE_LOG(LogTemp, Warning, TEXT("No enchantment found for key: %s"), *EnchantmentKey);
+
+            CurrentProject->bIsEnchanted = false;
+            if (EnchantingWidget)
+            {
+                EnchantingWidget->ShowEnchantingPrompt(true);
+                EnchantingWidget->UpdateEnchantingPrompt(TEXT("Failed to Enchant Item"));
+            }
+
+            // Clear the inscribed runes to allow retry
+            CurrentProject->InscribedRunes.Empty();
         }
     }
     else 
