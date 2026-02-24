@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "ItemSlot.h"
+#include "ItemTypesEnum.h"
 #include "TeamA.h"
 
 ATeamACharacter::ATeamACharacter()
@@ -106,10 +107,13 @@ void ATeamACharacter::UpdateItemSlotHighlight()
 			{
 				if (Slot->AcceptedItemType == HeldItem->ItemType && !Slot->bIsOccupied)
 				{
-					// Highlight valid slot
-					if (Slot->HighlightMesh)
+					if (Slot->AcceptedSpecificType == HeldItem->SpecificType || Slot->bRequiresSpecificType == false)
 					{
-						Slot->ShowHighlight(true);
+						// Highlight valid slot
+						if (Slot->HighlightMesh)
+						{
+							Slot->ShowHighlight(true);
+						}
 					}
 				}
 				else

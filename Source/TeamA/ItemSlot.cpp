@@ -59,6 +59,11 @@ bool AItemSlot::AttachItem(APickup* Item)
 		UE_LOG(LogTemp, Warning, TEXT("AttachItem failed: Item type mismatch."));
         return false;
     }
+    if (bRequiresSpecificType && Item->SpecificType != AcceptedSpecificType)
+	{
+        UE_LOG(LogTemp, Warning, TEXT("AttachItem failed: Item specific type mismatch."));
+        return false;
+	}
 
     // Attach item to socket
     Item->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);

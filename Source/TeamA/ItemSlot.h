@@ -28,6 +28,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EItemTypesEnum AcceptedItemType;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	ESpecificTypes AcceptedSpecificType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bRequiresSpecificType;
+
     /** Is socket currently occupied */
     UPROPERTY(BlueprintReadOnly)
     bool bIsOccupied;

@@ -33,6 +33,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EItemTypesEnum ItemType;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ESpecificTypes SpecificType;
+
 	UFUNCTION(BlueprintNativeEvent)
 	void OnPickedUp();
 };
