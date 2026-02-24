@@ -37,6 +37,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UArrowComponent* ArrowComp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int UpgradeLevel = 1;
+
 
 protected:
 	// Called when the game starts or when spawned

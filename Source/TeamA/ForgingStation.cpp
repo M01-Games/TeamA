@@ -601,10 +601,10 @@ EForgeHitQuality AForgingStation::EvaluateTiming(float FillValue, float TargetVa
 {
 	float Error = FMath::Abs(FillValue - TargetValue);
 
-	if (Error <= TimingPerfectThreshold)
+	if (Error <= TimingPerfectThreshold * UpgradeLevel)
 		return EForgeHitQuality::Perfect;
 
-	if (Error <= TimingGoodThreshold)
+	if (Error <= TimingGoodThreshold * UpgradeLevel)
 		return EForgeHitQuality::Good;
 
 	return EForgeHitQuality::Bad;
@@ -650,10 +650,10 @@ EForgeHitQuality AForgingStation::EvaluateScreenPosition(
 	float ScreenDistance = FVector2D::Distance(MousePos, TargetScreenPos);
 
 	// 4. Score based on pixel radius
-	if (ScreenDistance <= Target->PerfectRadius)
+	if (ScreenDistance <= Target->PerfectRadius * UpgradeLevel)
 		return EForgeHitQuality::Perfect;
 
-	if (ScreenDistance <= Target->GoodRadius)
+	if (ScreenDistance <= Target->GoodRadius * UpgradeLevel)
 		return EForgeHitQuality::Good;
 
 	return EForgeHitQuality::Bad;
