@@ -28,7 +28,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EItemTypesEnum AcceptedItemType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ESpecificTypes AcceptedSpecificType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
