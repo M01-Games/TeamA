@@ -267,8 +267,8 @@ void AForgingStation::StartForgingSequence()
 	FBox LocalBounds =
 		BladeMesh->CalcBounds(FTransform::Identity).GetBox();
 
-	float MinZ = LocalBounds.Min.Z;
-	float MaxZ = LocalBounds.Max.Z;
+	float MinZ = LocalBounds.Min.Z / 10;
+	float MaxZ = LocalBounds.Max.Z / 10;
 
 	UE_LOG(LogTemp, Warning, TEXT("Blade Z bounds: %.2f to %.2f"), MinZ, MaxZ);
 
