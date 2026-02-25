@@ -12,6 +12,16 @@ AProject::AProject()
 	// Attach SkeletalMesh to CollisionMesh
 	SkeletalMesh->SetupAttachment(InteractionVolume);
 
+	// Setup Arrow Components
+	
+	TipSide = CreateDefaultSubobject<USceneComponent>(TEXT("TipSide"));
+	HandleSide = CreateDefaultSubobject<USceneComponent>(TEXT("HandleSide"));
+	TipSide->SetupAttachment(Root);
+	HandleSide->SetupAttachment(Root);
+	
+	// Make sure the arrow components are editable and visible in the editor
+
+
 	//Set default values for forging minigame
 	bIsForged = false;
 	forgingProgress = 0.0f;

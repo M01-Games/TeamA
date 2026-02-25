@@ -2,6 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "Pickup.h"
+#include "ItemTypesEnum.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/SceneComponent.h"
 #include "Project.generated.h"
 
 /**
@@ -51,7 +54,13 @@ public:
 
 	bool bIsEnchanted = false;
 
-
+	//Arrow component for TipSide and HandleSide indicators
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USceneComponent* TipSide;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USceneComponent* HandleSide;
+	
 protected:
 	// On overlap stay event
 	void NotifyActorBeginOverlap(AActor* OtherActor) override;

@@ -263,12 +263,16 @@ void AForgingStation::StartForgingSequence()
 		
 	ActiveTargets.Empty();
 
+	FVector HandlePoint = CurrentProject->HandleSide->GetComponentTransform().GetLocation();
+	FVector TipPoint = CurrentProject->TipSide->GetComponentTransform().GetLocation();
+
+
 	// Get local bounds of blade
 	FBox LocalBounds =
 		BladeMesh->CalcBounds(FTransform::Identity).GetBox();
 
-	float MinZ = LocalBounds.Min.Z / 10;
-	float MaxZ = LocalBounds.Max.Z / 10;
+	float MinZ = HandlePoint.Y - BladeMesh->GetComponentLocation().Y;
+	float MaxZ = TipPoint.Y - BladeMesh->GetComponentLocation().Y;
 
 	UE_LOG(LogTemp, Warning, TEXT("Blade Z bounds: %.2f to %.2f"), MinZ, MaxZ);
 
