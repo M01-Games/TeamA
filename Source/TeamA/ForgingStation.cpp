@@ -275,10 +275,6 @@ void AForgingStation::StartForgingSequence()
 	UE_LOG(LogTemp, Warning, TEXT("Mesh scale: %s"),
 		*BladeMesh->GetComponentScale().ToString());
 
-	// Adjust bounds based on scale
-	MinZ *= BladeMesh->GetComponentScale().Z;
-	MaxZ *= BladeMesh->GetComponentScale().Z;
-
 
 	// Safety clamp (avoid hilt & tip)
 	MinZ = FMath::Lerp(MinZ, MaxZ, 0.1f);
