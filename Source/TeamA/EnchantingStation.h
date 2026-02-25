@@ -16,6 +16,7 @@
 #include "NNERuntimeCPU.h"
 #include "EnchantingWidget.h"
 #include "Project.h"
+#include "Pickup.h"
 #include "EnchantingStation.generated.h"
 
 UENUM(BlueprintType)
@@ -95,6 +96,7 @@ public:
 	TObjectPtr<UNNEModelData> RuneClassifierModel;
 
 	AProject* CurrentProject;
+	APickup* Amethyst;
 
 	// Dictionary of encahntments
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enchantments")

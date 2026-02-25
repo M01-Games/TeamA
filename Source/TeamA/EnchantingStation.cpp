@@ -196,9 +196,45 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
     }
     else {
 
-        CurrentProject = Cast<AProject>(Inventory[0]);
+		//Find first project in inventory
+		CurrentProject = nullptr;
+		for (AActor* Item : Inventory)
+		{
+			CurrentProject = Cast<AProject>(Item);
+			if (CurrentProject)
+			{
+				break;
+			}
+		}
 
-        if (CurrentProject->bIsEnchanted) { EnchantingWidget->ShowEnchantingPrompt(true); EnchantingWidget->UpdateEnchantingPrompt(TEXT("Item already enchanted")); return; }
+		Amethyst = nullptr;
+
+		//Find other item in inventory, set to Amethyst if it's not the project
+		for (AActor* Item : Inventory)
+		{
+			if (Item != CurrentProject)
+			{
+				Amethyst = Cast<APickup>(Item);
+				if (Amethyst)
+				{
+					break;
+				}
+			}
+		}
+
+        if (CurrentProject)
+        {
+            if (CurrentProject->bIsEnchanted) { EnchantingWidget->ShowEnchantingPrompt(true); EnchantingWidget->UpdateEnchantingPrompt(TEXT("Item already enchanted")); return; }
+        }
+
+
+		//if no amethyst, show prompt to add amethyst
+		if (!Amethyst)
+            {
+             EnchantingWidget->ShowEnchantingPrompt(true);
+             EnchantingWidget->UpdateEnchantingPrompt(TEXT("Add amethyst to enchant the item"));
+             return;
+		}
 
         EnchantingWidget->ShowEnchantingPrompt(true);
         EnchantingWidget->UpdateEnchantingPrompt(TEXT("Draw a rune to enchant the item!"));
@@ -410,6 +446,10 @@ void AEnchantingStation::StartDrawing()
     {
 		return;
     }
+    if (!Amethyst)
+    {
+        return;
+	}
 
     // Start a new stroke
     bIsDrawing = true;
@@ -699,7 +739,12 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
 
     if (CurrentProject->InscribedRunes.Num() >= 3)
     {
-        
+		// Consume the amethyst to enchant the item
+        if (Amethyst)
+        {
+            Amethyst->Destroy();
+            Amethyst = nullptr;
+		}
         
 
         // Apply enchantment effect based on the runes inscribed 

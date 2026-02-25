@@ -13,7 +13,8 @@ enum class EItemTypesEnum : uint8
     Project UMETA(DisplayName = "Project"),
     Money UMETA(DisplayName = "Money"),
 	Handle UMETA(DisplayName = "Handle"),
-	MOULD UMETA(DisplayName = "Mould")
+	MOULD UMETA(DisplayName = "Mould"),
+	CRYSTAL UMETA(DisplayName = "Crystal")
 };
 
 UENUM(BlueprintType)
