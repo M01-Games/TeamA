@@ -16,8 +16,8 @@ AProject::AProject()
 	
 	TipSide = CreateDefaultSubobject<USceneComponent>(TEXT("TipSide"));
 	HandleSide = CreateDefaultSubobject<USceneComponent>(TEXT("HandleSide"));
-	TipSide->SetupAttachment(Root);
-	HandleSide->SetupAttachment(Root);
+	TipSide->SetupAttachment(SkeletalMesh);
+	HandleSide->SetupAttachment(SkeletalMesh);
 	
 	// Make sure the arrow components are editable and visible in the editor
 

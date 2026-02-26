@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ForgingStation.h"
 #include "InputActionValue.h"
@@ -263,83 +263,70 @@ void AForgingStation::StartForgingSequence()
 		
 	ActiveTargets.Empty();
 
-	FVector HandlePoint = CurrentProject->HandleSide->GetComponentTransform().GetLocation();
-	FVector TipPoint = CurrentProject->TipSide->GetComponentTransform().GetLocation();
+	
+	USceneComponent* HandleLocation = CurrentProject->HandleSide;
+	USceneComponent* TipLocation = CurrentProject->TipSide;
 
+	if (!HandleLocation || !TipLocation || !TargetActorClass)
+		return;
 
-	// Get local bounds of blade
-	FBox LocalBounds =
-		BladeMesh->CalcBounds(FTransform::Identity).GetBox();
+	FVector HandlePoint = HandleLocation->GetComponentLocation();
+	FVector TipPoint = TipLocation->GetComponentLocation();
 
-	float MinZ = HandlePoint.Y - BladeMesh->GetComponentLocation().Y;
-	float MaxZ = TipPoint.Y - BladeMesh->GetComponentLocation().Y;
+	// Clear old targets
+	for (AForgingTargetActor* Target : ActiveTargets)
+	{
+		if (Target)
+			Target->Destroy();
+	}
+	ActiveTargets.Empty();
 
-	UE_LOG(LogTemp, Warning, TEXT("Blade Z bounds: %.2f to %.2f"), MinZ, MaxZ);
+	// Direction along blade
+	FVector BladeDirection = (TipPoint - HandlePoint).GetSafeNormal();
+	float BladeLength = FVector::Distance(HandlePoint, TipPoint);
 
-	UE_LOG(LogTemp, Warning, TEXT("Mesh scale: %s"),
-		*BladeMesh->GetComponentScale().ToString());
-
-
-	// Safety clamp (avoid hilt & tip)
-	MinZ = FMath::Lerp(MinZ, MaxZ, 0.1f);
-	MaxZ = FMath::Lerp(MinZ, MaxZ, 0.9f);
-
-
-	//Create an array of random numbers between MinZ and MaxZ based on the pattern length
-	TArray<float> RandomZPositions;
+	// Generate sorted alphas (0–1 along blade)
+	TArray<float> Alphas;
 	for (int32 i = 0; i < PatternLength; i++)
 	{
-		float RandomZ = FMath::FRandRange(MinZ, MaxZ);
-		RandomZPositions.Add(RandomZ);
+		Alphas.Add(FMath::FRandRange(0.1f, 0.9f));
 	}
-	// Sort the array from largest to smallest
-	RandomZPositions.Sort([](float A, float B) {return A > B;});
-	//Ensure that the positions are not too close to each other
-	const float MinSeparation = (MaxZ - MinZ) / (PatternLength * 2);
-	for (int32 i = 1; i < RandomZPositions.Num(); i++)
-	{
-		if (FMath::Abs(RandomZPositions[i] - RandomZPositions[i - 1]) < MinSeparation)
-		{
-			RandomZPositions[i] = RandomZPositions[i - 1] - MinSeparation;
-			// Clamp to MinZ
-			RandomZPositions[i] = FMath::Max(RandomZPositions[i], MinZ);
-		}
-	}
-
-
-
-
+	Alphas.Sort(); // handle → tip order
 
 	for (int32 i = 0; i < PatternLength; i++)
 	{
-		float Alpha = FMath::FRandRange(0.1f, 0.9f);
-		float LocalZ = RandomZPositions[i];
+		float Alpha = Alphas[i];
+
+		// World-space position along blade
+		FVector WorldPos =
+			FMath::Lerp(HandlePoint, TipPoint, Alpha);
 
 		AForgingTargetActor* Target =
-			GetWorld()->SpawnActor<AForgingTargetActor>(TargetActorClass);
+			GetWorld()->SpawnActor<AForgingTargetActor>(
+				TargetActorClass,
+				WorldPos,
+				BladeMesh->GetComponentRotation()
+			);
 
 		if (!Target)
 			continue;
 
-		// Attach first
 		Target->AttachToComponent(
 			BladeMesh,
-			FAttachmentTransformRules::KeepRelativeTransform
+			FAttachmentTransformRules::KeepWorldTransform
 		);
 
-		// Set RELATIVE transform
-		Target->SetActorRelativeLocation(
-			FVector(
-				50.0f,  // X: blade surface
-				20.0f,  // Y: lateral offset
-				LocalZ  // Z: along blade
-			)
-		);
+		// 🔑 FIX SCALE INHERITANCE
+		Target->SetActorRelativeScale3D(FVector::OneVector);
 
-		Target->SetActorRelativeRotation(FRotator::ZeroRotator);
+		// Optional surface offset
+		Target->AddActorLocalOffset(FVector(15.f, 5.f, 0.f));
 
 		ActiveTargets.Add(Target);
 	}
+
+
+	
 
 
 	ForgingWidgetInstance->ShowHammerBar_0(true);
@@ -354,7 +341,7 @@ void AForgingStation::StartForgingSequence()
 	CurrentTargetValue = CurrentForgingPattern[CurrentHammerIndex];
 
 	BeginNextHammer();
-
+	
 }
 
 void AForgingStation::ProcessHammerInput()
