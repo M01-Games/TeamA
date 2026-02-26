@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Pickup.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
+#include "Project.h"
 #include "Crystal.generated.h"
 
 /**

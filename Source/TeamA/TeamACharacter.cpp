@@ -350,6 +350,8 @@ void ATeamACharacter::ExitWorkstation()
 	if (!CurrentWorkstation)
 		return;
 
+	UE_LOG(LogTeamA, Log, TEXT("Exiting workstation: %s"), *CurrentWorkstation->GetName());
+
 	APlayerController* PC = Cast<APlayerController>(GetController());
 
 	FViewTargetTransitionParams Params;
