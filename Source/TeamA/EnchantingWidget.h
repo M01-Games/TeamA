@@ -22,11 +22,25 @@ public:
 	UImage* RuneImage;
 
 	UPROPERTY(meta = (BindWidget))
+	UImage* Enscribed1;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* Enscribed2;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* Enscribed3;
+
+	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* EnchantingPrompt;
 
 
 
 	void UpdateEnchantingPrompt(const FString& NewText);
 	void ShowEnchantingPrompt(bool bShow);
+
+
+	void SetEnscribedImage(int32 Index, char RuneType);
+
+	void ClearEnscribedImages();
 
 };

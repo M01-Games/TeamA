@@ -33,3 +33,18 @@ enum class ESpecificTypes : uint8
 	Axe UMETA(DisplayName = "Axe"),
 	None UMETA(DisplayName = "None")
 };
+
+UENUM(BlueprintType)
+enum class EEnchants : uint8
+{
+    Fire UMETA(DisplayName = "Fire"),
+    Ice UMETA(DisplayName = "Ice"),
+    Lightning UMETA(DisplayName = "Lightning"),
+	Luck UMETA(DisplayName = "Luck"),
+	Poison UMETA(DisplayName = "Poison"),
+	Light UMETA(DisplayName = "Light"),
+	Dark UMETA(DisplayName = "Dark"),
+	Air UMETA(DisplayName = "Air"),
+	Magic UMETA(DisplayName = "Magic"),
+    None UMETA(DisplayName = "None")
+};

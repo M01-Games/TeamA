@@ -156,7 +156,7 @@ void ATeamACharacter::UpdateInteractPrompt()
 		return;
 	}
 
-	if (OverlappingWorkstation) {
+	if (OverlappingWorkstation && !HeldItem) {
 		//Show interact prompt
 		FirstPersonWidgetInstance->ShowEnterPrompt(true);
 		FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT("Press 'E' to enter"));
@@ -185,7 +185,7 @@ void ATeamACharacter::UpdateInteractPrompt()
 			if (Slot && Slot->AcceptedItemType == HeldItem->ItemType)
 			{
 				FirstPersonWidgetInstance->ShowInteractPrompt(true);
-				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to place item"));
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'E' to place item"));
 				return;
 			}
 		}
@@ -196,7 +196,7 @@ void ATeamACharacter::UpdateInteractPrompt()
 		if (PickupInView)
 		{
 			FirstPersonWidgetInstance->ShowInteractPrompt(true);
-			FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to pick up item"));
+			FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'E' to pick up item"));
 			return;
 		}
 	}
@@ -313,7 +313,7 @@ void ATeamACharacter::OnOverlapEnd(
 
 void ATeamACharacter::Interact()
 {
-	if (CurrentWorkstation || !OverlappingWorkstation)
+	if (CurrentWorkstation || !OverlappingWorkstation || HeldItem)
 		return;
 
 	CurrentWorkstation = OverlappingWorkstation;

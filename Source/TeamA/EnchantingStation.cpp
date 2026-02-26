@@ -34,6 +34,7 @@
 #include "Engine/AssetManager.h"
 #include "NNERuntimeRunSync.h"
 #include "EnchantingWidget.h"
+#include "Crystal.h"
 #include "DrawDebugHelpers.h"
 
 
@@ -214,12 +215,23 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
 		{
 			if (Item != CurrentProject)
 			{
-				Amethyst = Cast<APickup>(Item);
+				Amethyst = Cast<ACrystal>(Item);
 				if (Amethyst)
 				{
+					UE_LOG(LogTemp, Log, TEXT("Amethyst found in inventory: %s"), *Amethyst->GetName());
 					break;
 				}
 			}
+		}
+        if (CurrentProject)
+        {
+			char rune1 = CurrentProject->InscribedRunes.IsValidIndex(0) ? CurrentProject->InscribedRunes[0][0] : ' ';
+			char rune2 = CurrentProject->InscribedRunes.IsValidIndex(1) ? CurrentProject->InscribedRunes[1][0] : ' ';
+			char rune3 = CurrentProject->InscribedRunes.IsValidIndex(2) ? CurrentProject->InscribedRunes[2][0] : ' ';
+
+			EnchantingWidget->SetEnscribedImage(0, rune1);
+            EnchantingWidget->SetEnscribedImage(1, rune2);
+            EnchantingWidget->SetEnscribedImage(2, rune3);
 		}
 
         if (CurrentProject)
@@ -230,9 +242,10 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
 
 		//if no amethyst, show prompt to add amethyst
 		if (!Amethyst)
-            {
+        {
              EnchantingWidget->ShowEnchantingPrompt(true);
              EnchantingWidget->UpdateEnchantingPrompt(TEXT("Add amethyst to enchant the item"));
+			 Amethyst = nullptr;
              return;
 		}
 
@@ -448,8 +461,11 @@ void AEnchantingStation::StartDrawing()
     }
     if (!Amethyst)
     {
+        EnchantingWidget->ShowEnchantingPrompt(true);
+        EnchantingWidget->UpdateEnchantingPrompt(TEXT("Add amethyst to enchant the item"));
+		UE_LOG(LogTemp, Warning, TEXT("Cannot start drawing - no amethyst present"));
         return;
-	}
+    }
 
     // Start a new stroke
     bIsDrawing = true;
@@ -469,6 +485,13 @@ void AEnchantingStation::StopDrawing()
     {
         return;
     }
+
+    if (!Amethyst)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Cannot start drawing - no amethyst present"));
+        return;
+    }
+
     bIsDrawing = false;
     if (CurrentStroke.Num() > 0)
     {
@@ -486,6 +509,13 @@ void AEnchantingStation::FinishRune()
     {
         return;
     }
+
+    if (!Amethyst)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Cannot start drawing - no amethyst present"));
+        return;
+    }
+
     if (CurrentProject && CurrentProject->bIsEnchanted)
     {
         return;
@@ -720,6 +750,8 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
         return;
     }
 
+
+
     UE_LOG(LogTemp, Log, TEXT("Classified Rune as: %s"), *RuneName);
     
 	// if the rune is "INVALID", do not add it to the list and show an error message
@@ -737,12 +769,20 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
 
     CurrentProject->InscribedRunes.Add(RuneName);
 
+    char rune1 = CurrentProject->InscribedRunes.IsValidIndex(0) ? CurrentProject->InscribedRunes[0][0] : ' ';
+    char rune2 = CurrentProject->InscribedRunes.IsValidIndex(1) ? CurrentProject->InscribedRunes[1][0] : ' ';
+    char rune3 = CurrentProject->InscribedRunes.IsValidIndex(2) ? CurrentProject->InscribedRunes[2][0] : ' ';
+
+    EnchantingWidget->SetEnscribedImage(0, rune1);
+    EnchantingWidget->SetEnscribedImage(1, rune2);
+    EnchantingWidget->SetEnscribedImage(2, rune3);
+
     if (CurrentProject->InscribedRunes.Num() >= 3)
     {
 		// Consume the amethyst to enchant the item
         if (Amethyst)
         {
-            Amethyst->Destroy();
+            Amethyst->Shatter();
             Amethyst = nullptr;
 		}
         

@@ -21,6 +21,7 @@ public class TeamA : ModuleRules
 			"Slate",
 			"SlateCore",
 			"NNE",
+			"GeometryCollectionEngine",
             "Niagara"
         });
 
