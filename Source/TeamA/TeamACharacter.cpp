@@ -185,7 +185,7 @@ void ATeamACharacter::UpdateInteractPrompt()
 			if (Slot && Slot->AcceptedItemType == HeldItem->ItemType)
 			{
 				FirstPersonWidgetInstance->ShowInteractPrompt(true);
-				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'E' to place item"));
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to place item"));
 				return;
 			}
 		}
@@ -196,7 +196,7 @@ void ATeamACharacter::UpdateInteractPrompt()
 		if (PickupInView)
 		{
 			FirstPersonWidgetInstance->ShowInteractPrompt(true);
-			FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'E' to pick up item"));
+			FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to pick up item"));
 			return;
 		}
 	}
@@ -313,63 +313,70 @@ void ATeamACharacter::OnOverlapEnd(
 
 void ATeamACharacter::Interact()
 {
-	if (CurrentWorkstation || !OverlappingWorkstation || HeldItem)
-		return;
-
-	CurrentWorkstation = OverlappingWorkstation;
-
-	// Disable movement
-	GetCharacterMovement()->DisableMovement();
-	//Disable look rotation
-	GetController()->SetIgnoreLookInput(true);
-
-
-	// Switch camera
-	FViewTargetTransitionParams Params;
-	Params.BlendTime = 0.35f;
-
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	PC->SetViewTarget(CurrentWorkstation, Params);
-
-	CurrentWorkstation->Enter(this);
-
-	// Disable item pickup input while at workstation
-
-	//Hide UI crosshair and interact prompt
-	if (FirstPersonWidgetInstance)
+	if (CurrentWorkstation)
 	{
-		FirstPersonWidgetInstance->ShowCrosshair(false);
-		FirstPersonWidgetInstance->ShowInteractPrompt(false);
+		UE_LOG(LogTeamA, Log, TEXT("Exiting workstation: %s"), *CurrentWorkstation->GetName());
+
+		APlayerController* PC = Cast<APlayerController>(GetController());
+
+		FViewTargetTransitionParams Params;
+		Params.BlendTime = 0.35f;
+		PC->SetViewTarget(this, Params);
+
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		//Enable look rotation
+		GetController()->SetIgnoreLookInput(false);
+
+		CurrentWorkstation->Exit(this);
+		CurrentWorkstation = nullptr;
+
+		//Show the UI crosshair
+		if (FirstPersonWidgetInstance)
+		{
+			FirstPersonWidgetInstance->ShowCrosshair(true);
+		}
 	}
+	else {
+		if (OverlappingWorkstation && !HeldItem)
+		{
+			UE_LOG(LogTeamA, Log, TEXT("Interacting with workstation: %s"), *OverlappingWorkstation->GetName());
+			CurrentWorkstation = OverlappingWorkstation;
+
+			// Disable movement
+			GetCharacterMovement()->DisableMovement();
+			//Disable look rotation
+			GetController()->SetIgnoreLookInput(true);
+
+
+			// Switch camera
+			FViewTargetTransitionParams Params;
+			Params.BlendTime = 0.35f;
+
+			APlayerController* PC = Cast<APlayerController>(GetController());
+			PC->SetViewTarget(CurrentWorkstation, Params);
+
+			CurrentWorkstation->Enter(this);
+
+			// Disable item pickup input while at workstation
+
+			//Hide UI crosshair and interact prompt
+			if (FirstPersonWidgetInstance)
+			{
+				FirstPersonWidgetInstance->ShowCrosshair(false);
+				FirstPersonWidgetInstance->ShowInteractPrompt(false);
+			}
+		}
+	}
+
+
+
 
 
 }
 
 void ATeamACharacter::ExitWorkstation()
 {
-	if (!CurrentWorkstation)
-		return;
 
-	UE_LOG(LogTeamA, Log, TEXT("Exiting workstation: %s"), *CurrentWorkstation->GetName());
-
-	APlayerController* PC = Cast<APlayerController>(GetController());
-
-	FViewTargetTransitionParams Params;
-	Params.BlendTime = 0.35f;
-	PC->SetViewTarget(this, Params);
-
-	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	//Enable look rotation
-	GetController()->SetIgnoreLookInput(false);
-
-	CurrentWorkstation->Exit(this);
-	CurrentWorkstation = nullptr;
-
-	//Show the UI crosshair
-	if (FirstPersonWidgetInstance)
-	{
-		FirstPersonWidgetInstance->ShowCrosshair(true);
-	}
 }
 
 
