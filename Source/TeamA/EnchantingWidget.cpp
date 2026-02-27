@@ -44,9 +44,8 @@ void UEnchantingWidget::SetEnscribedImage(int32 Index, char RuneType)
 	}
 	if (TargetImage)
 	{
-		FString TexturePath = FString::Printf(TEXT("/Game/UI_Elements/%c_RUNE.%c_RUNE"), RuneType, RuneType);
+		FString TexturePath = FString::Printf(TEXT("/Game/Assets/UI/%c_RUNE.%c_RUNE"), RuneType, RuneType);
 		UTexture2D* RuneTexture = Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), nullptr, *TexturePath));
-		
 		if (RuneTexture)
 		{
 			TargetImage->SetBrushFromTexture(RuneTexture);

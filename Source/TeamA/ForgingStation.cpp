@@ -107,8 +107,6 @@ void AForgingStation::Enter_Implementation(ACharacter* Character)
 
 
 		ForgingWidgetInstance->ShowForgePrompt(true);
-
-		ForgingWidgetInstance->ShowHammerBar_0(false); 
 	}
 }
 
@@ -141,7 +139,7 @@ void AForgingStation::Exit_Implementation(ACharacter* Character)
 		ForgingWidgetInstance->RemoveFromParent();
 		ForgingWidgetInstance = nullptr;
 
-		/*
+		
 		if (ActiveTargets.Num() > 0)
 		{
 			// Clear targets
@@ -150,7 +148,16 @@ void AForgingStation::Exit_Implementation(ACharacter* Character)
 				if (Target)
 					Target->Destroy();
 			}
-		}*/
+			ActiveTargets.Empty();
+			TargetAlphas.Empty();
+		}
+
+		// Destroy indicator
+		if (IndicatorActor)
+		{
+			IndicatorActor->Destroy();
+			IndicatorActor = nullptr;
+		}
 
 	}
 }
@@ -189,15 +196,33 @@ void AForgingStation::Tick(float DeltaTime)
 			TimingPerfectThreshold = TimingPerfectThresholdDefault - (2.0f / 3.0f * TimingPerfectThresholdDefault * ((100.0f - CurrentProject->HeatIntensity) / 100.0f));
 			TimingGoodThreshold = TimingGoodThresholdDefault - (2.0f / 3.0f * TimingGoodThresholdDefault * ((100.0f - CurrentProject->HeatIntensity) / 100.0f));
 
-			CurrentHammerFill += DeltaTime * FillSpeed;
-			CurrentHammerFill = FMath::Clamp(CurrentHammerFill, -HammerFillDelay, 1.0f);
+			if (GoingRight)
+			{
+
+				CurrentHammerFill += DeltaTime * FillSpeed;
+			}
+			else
+			{
+				CurrentHammerFill -= DeltaTime * FillSpeed;
+			}
+
+			if (CurrentHammerFill >= 1.0f)
+			{
+				CurrentHammerFill = 1.0f;
+				GoingRight = false;
+			}
+			else if (CurrentHammerFill <= 0.0f)
+			{
+				CurrentHammerFill = 0.0f;
+				GoingRight = true;
+			}
+
 			CurrentTargetValue = CurrentForgingPattern.IsValidIndex(CurrentHammerIndex)
 				? CurrentForgingPattern[CurrentHammerIndex]
 				: 0.5f;
 
 			// Update UI
-			ForgingWidgetInstance->UpdateHammerBar_0( max(CurrentHammerFill, 0.0f));
-			ForgingWidgetInstance->SetForgeTargetPercent(CurrentTargetValue);
+			ForgingWidgetInstance->SetForgeTargetPercent(max(CurrentHammerFill, 0.0f));
 
 			ForgingWidgetInstance->UpdateHammerTimingZones(
 				CurrentTargetValue,
@@ -284,6 +309,7 @@ void AForgingStation::StartForgingSequence()
 
 		
 	ActiveTargets.Empty();
+	TargetAlphas.Empty();
 
 	
 	USceneComponent* HandleLocation = CurrentProject->HandleSide;
@@ -308,6 +334,7 @@ void AForgingStation::StartForgingSequence()
 			Target->Destroy();
 	}
 	ActiveTargets.Empty();
+	TargetAlphas.Empty();
 
 	// Direction along blade
 	FVector BladeDirection = (HandlePoint - TipPoint).GetSafeNormal();
@@ -321,7 +348,7 @@ void AForgingStation::StartForgingSequence()
 	}
 	Alphas.Sort(); 
 	// Reverse alphas so that targets spawn from tip to handle (matches forging direction)
-	Algo::Reverse(Alphas);
+	//Algo::Reverse(Alphas);
 
 	for (int32 i = 0; i < PatternLength; i++)
 	{
@@ -329,7 +356,7 @@ void AForgingStation::StartForgingSequence()
 
 		// World-space position along blade
 		FVector WorldPos =
-			FMath::Lerp(HandlePoint, TipPoint, Alpha);
+			FMath::Lerp(TipPoint, HandlePoint, Alpha);
 
 		AForgingTargetActor* Target =
 			GetWorld()->SpawnActor<AForgingTargetActor>(
@@ -367,9 +394,6 @@ void AForgingStation::StartForgingSequence()
 		);
 	}
 
-
-	ForgingWidgetInstance->ShowHammerBar_0(true);
-	ForgingWidgetInstance->UpdateHammerBar_0(0.0f);
 
 	isForging = true;
 	CurrentHammerIndex = 0;
@@ -522,8 +546,6 @@ void AForgingStation::BeginNextHammer()
 	}
 
 	CurrentHammerFill = -HammerFillDelay;
-
-	ForgingWidgetInstance->ShowHammerBar_0(true);
 }
 
 void AForgingStation::FinishForging()
@@ -546,7 +568,6 @@ void AForgingStation::FinishForging()
 	else
 	{
 		//Hide hammer bar
-		ForgingWidgetInstance->ShowHammerBar_0(false);
 		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Space to continue forging"));
 	}
 
@@ -675,8 +696,8 @@ EForgeHitQuality AForgingStation::EvaluateIndicatorPosition(int32 TargetIndex) c
 	float TargetAlpha = TargetAlphas[TargetIndex]; 
 	float Error = FMath::Abs(IndicatorAlpha - TargetAlpha); 
 	UE_LOG(LogTemp, Warning, TEXT("Evaluating position: IndicatorAlpha=%.2f | TargetAlpha=%.2f | Error=%.2f"), IndicatorAlpha, TargetAlpha, Error);
-	if (Error <= TimingPerfectThreshold/2) return EForgeHitQuality::Perfect; 
-	if (Error <= TimingGoodThreshold/2) return EForgeHitQuality::Good; 
+	if (Error <= PositionPerfect) return EForgeHitQuality::Perfect; 
+	if (Error <= PositionGood) return EForgeHitQuality::Good; 
 	return EForgeHitQuality::Bad; 
 }
 

@@ -35,16 +35,6 @@ public:
 	void UpdateForgePrompt(const FString& NewText);
 	void ShowForgePrompt(bool bShow);
 
-	// ===== Hammer Bars =====
-	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* HammerBar_0;
-
-	void UpdateHammerBar_0(float Progress);
-	void ShowHammerBar_0(bool bShow);
-	void SetHammerBar_0Color(const FLinearColor& NewColor);
-	void SetHammerBar_0Target(float NewTarget);
-	void SetHammerBar_0Position(float x, float y);
-
 	void SetForgeTargetPercent(float NewPercent);
 	void SetForgeTargetVisible(bool bVisible);
 

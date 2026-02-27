@@ -182,6 +182,8 @@ protected:
 
 	FVector GetIndicatorWorldPosition(float Alpha) const;
 
+	bool GoingRight = true;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void Enter_Implementation(class ACharacter* Character) override;

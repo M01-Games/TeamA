@@ -103,7 +103,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enchantments")
 	TMap<FString, UMaterialInstance*> Enchantments;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnEnterBP();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnExitBP();
 protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void BeginPlay() override;
@@ -165,6 +169,7 @@ protected:
 
 	// Add this method declaration
 	void OnRuneClassified(const FString& RuneName);
+
 
 	
 };

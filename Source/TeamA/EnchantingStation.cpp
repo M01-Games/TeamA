@@ -151,7 +151,7 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
 
     CachedPC = PC;
 
-
+    OnEnterBP();
 
     // Create brush material
     if (RuneBrushMaterial)
@@ -177,12 +177,13 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
     BindInput(PC);
 
     // Show cursor
-    PC->bShowMouseCursor = true;
+    CachedPC->bShowMouseCursor = true;
+    
     FInputModeGameAndUI InputMode;
     InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
     InputMode.SetHideCursorDuringCapture(false);
     PC->SetInputMode(InputMode);
-
+    
     PrimaryActorTick.bCanEverTick = true;
 
     
@@ -556,8 +557,10 @@ void AEnchantingStation::Exit_Implementation(ACharacter* Character)
     if (CachedPC)
     {
         CachedPC->bShowMouseCursor = false;
-        CachedPC->SetInputMode(FInputModeGameOnly());
+        CachedPC->SetInputMode(FInputModeGameAndUI());
     }
+
+	OnExitBP();
 
     PrimaryActorTick.bCanEverTick = false;
     CachedPC = nullptr;
@@ -690,7 +693,7 @@ void AEnchantingStation::BindInput(APlayerController* PC)
 void AEnchantingStation::UnbindInput()
 {
     if (!CachedEnhancedInput) return;
-    CachedEnhancedInput->ClearActionBindings();
+    
     CachedEnhancedInput = nullptr;
     DisableInput(nullptr);
 }
