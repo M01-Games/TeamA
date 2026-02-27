@@ -17,6 +17,7 @@
 #include "NiagaraSystem.h"
 #include "ForgingTargetActor.h"
 #include "Components/WidgetComponent.h"
+#include "TeamACharacter.h"
 #include <iostream>
 #include <algorithm>
 #include "ForgingWidget.h"
@@ -45,6 +46,9 @@ void AForgingStation::Enter_Implementation(ACharacter* Character)
 	APlayerController* PC = Character
 		? Cast<APlayerController>(Character->GetController())
 		: nullptr;
+
+	//Attempt to cast the character to our TeamACharacter class to access the inventory
+	CachedCharacter = Cast<ATeamACharacter>(Character);
 
 	if (!PC || !PC->IsLocalController())
 	{
@@ -102,7 +106,17 @@ void AForgingStation::Enter_Implementation(ACharacter* Character)
 			ForgingWidgetInstance->UpdateForgePrompt(TEXT("Project already forged"));
 		}
 		else {
-			ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Space to start forging"));
+			if(CachedCharacter)
+			{
+				if(CachedCharacter->bUsingKeyboardMouse)
+				{
+					ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Left Click to forge"));
+				}
+				else
+				{
+					ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Right Button to forge"));
+				}
+			}
 		}
 
 
@@ -116,6 +130,8 @@ void AForgingStation::Exit_Implementation(ACharacter* Character)
 	APlayerController* PC = Character
 		? Cast<APlayerController>(Character->GetController())
 		: nullptr;
+
+	CachedCharacter = nullptr;
 
 	if (!PC || !PC->IsLocalController())
 	{
@@ -270,7 +286,6 @@ void AForgingStation::OnHammerPressed()
 
 void AForgingStation::StartForgingSequence()
 {
-	UE_LOG(LogTemp, Warning, TEXT("StartForgingSequence called"));
 
 	if (isForging)
 	{
@@ -278,12 +293,10 @@ void AForgingStation::StartForgingSequence()
 	}
 	if (!CurrentProject)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No project to forge"));
 		return;
 	}
 	if (CurrentProject->bIsForged)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Project already forged"));
 		return;
 	}
 
@@ -294,8 +307,6 @@ void AForgingStation::StartForgingSequence()
 		ForgingWidgetInstance->ShowForgePrompt(true);
 		return;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("FORGING"));
 	ForgingWidgetInstance->ShowForgePrompt(false);
 
 	//Create an array of floats equal to the forging pattern length
@@ -567,8 +578,15 @@ void AForgingStation::FinishForging()
 	}
 	else
 	{
-		//Hide hammer bar
-		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Space to continue forging"));
+		bool bUsingKeyboardMouse = CachedCharacter->bUsingKeyboardMouse;
+		if(bUsingKeyboardMouse)
+		{
+			ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press \"Space\" to forge!"));
+		}
+		else
+		{
+			ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press \"Right Button\" to forge!"));
+		}
 	}
 
 	ForgingWidgetInstance->ShowForgePrompt(true);
@@ -612,37 +630,26 @@ void AForgingStation::BindInput(APlayerController* PC)
 		&AForgingStation::OnHammerPressed
 	);
 
-	
 	CachedEnhancedInput->BindAction(
-		MoveIndicatorLeftAction,
+		MoveIndicatorAction,
 		ETriggerEvent::Triggered,
 		this,
-		&AForgingStation::MoveIndicatorLeft
-	);
-
-	CachedEnhancedInput->BindAction(
-		MoveIndicatorRightAction,
-		ETriggerEvent::Triggered,
-		this,
-		&AForgingStation::MoveIndicatorRight
+		&AForgingStation::MoveIndicator
 	);
 }
 
-void AForgingStation::MoveIndicatorLeft()
+void AForgingStation::MoveIndicator(const FInputActionValue& Value)
 {
 	if (!isForging) return;
 
-	IndicatorAlpha -= IndicatorSpeed * GetWorld()->GetDeltaSeconds();
+	FVector2D Input = Value.Get<FVector2D>();
+
+	// Adjust alpha based on horizontal input
+	IndicatorAlpha += Input.X * IndicatorSpeed * GetWorld()->GetDeltaSeconds();
 	IndicatorAlpha = FMath::Clamp(IndicatorAlpha, 0.0f, 1.0f);
 }
 
-void AForgingStation::MoveIndicatorRight()
-{
-	if (!isForging) return;
 
-	IndicatorAlpha += IndicatorSpeed * GetWorld()->GetDeltaSeconds();
-	IndicatorAlpha = FMath::Clamp(IndicatorAlpha, 0.0f, 1.0f);
-}
 
 void AForgingStation::UpdateIndicatorPosition(float DeltaTime)
 {

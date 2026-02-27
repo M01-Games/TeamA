@@ -10,7 +10,7 @@
 #include "ForgingWidget.h"
 #include "ForgingTargetActor.h"
 #include "NiagaraSystem.h"
-
+#include "TeamACharacter.h"
 #include "ForgingStation.generated.h"
 
 /**
@@ -43,10 +43,7 @@ public:
 	class UInputAction* HammerAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	class UInputAction* MoveIndicatorLeftAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	class UInputAction* MoveIndicatorRightAction;
+	class UInputAction* MoveIndicatorAction;
 
 	void StartForgingSequence();
 	void ProcessHammerInput();
@@ -168,8 +165,7 @@ protected:
 	void BindInput(APlayerController* PC);
 	void UnbindInput();
 
-	void MoveIndicatorLeft();
-	void MoveIndicatorRight();
+	void MoveIndicator(const FInputActionValue& Value);
 	void UpdateIndicatorPosition(float DeltaTime);
 
 	void OnHammerPressed();
@@ -183,6 +179,8 @@ protected:
 	FVector GetIndicatorWorldPosition(float Alpha) const;
 
 	bool GoingRight = true;
+
+	ATeamACharacter* CachedCharacter = nullptr;
 
 public:
 	virtual void Tick(float DeltaTime) override;

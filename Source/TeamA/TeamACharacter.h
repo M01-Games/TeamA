@@ -52,19 +52,22 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	class UInputAction* InteractAction;
 
-	/** Exit Workstation Input Action */
-	UPROPERTY(EditAnywhere, Category = "Input")
-	class UInputAction* ExitWorkstationAction;
-
 	/** pickup input action */
 	UPROPERTY(EditAnywhere, Category = "Input")
 	class UInputAction* PickupAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	class UInputAction* SwitchKeyboardMouseAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	class UInputAction* SwitchGamepadAction;
 
 	// Widget instance (runtime)
 	UPROPERTY()
 	UFirstPersonWidget* FirstPersonWidgetInstance;
 
-
+	void SwitchToKeyboardMouse();
+	void SwitchToGamepad();
 	
 public:
 	ATeamACharacter();
@@ -79,7 +82,6 @@ public:
 	AWorkstation* OverlappingWorkstation;
 
 	void Interact();
-	void ExitWorkstation();
 
 	void UpdateInteractPrompt();
 	void UpdateItemSlotHighlight();
@@ -116,6 +118,8 @@ public:
 	// UI Widget for forging
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUserWidget> FirstPersonWidgetClass;
+
+	bool bUsingKeyboardMouse = true;
 
 protected:
 

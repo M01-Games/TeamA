@@ -159,7 +159,13 @@ void ATeamACharacter::UpdateInteractPrompt()
 	if (OverlappingWorkstation && !HeldItem) {
 		//Show interact prompt
 		FirstPersonWidgetInstance->ShowEnterPrompt(true);
-		FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT("Press 'E' to enter"));
+		if (bUsingKeyboardMouse)
+		{
+			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT("Press 'E' to enter workstation"));
+		}
+		else {
+			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT("Press 'Left Button' to enter workstation"));
+		}
 	}
 	else {
 		FirstPersonWidgetInstance->ShowEnterPrompt(false);
@@ -185,7 +191,13 @@ void ATeamACharacter::UpdateInteractPrompt()
 			if (Slot && Slot->AcceptedItemType == HeldItem->ItemType)
 			{
 				FirstPersonWidgetInstance->ShowInteractPrompt(true);
-				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to place item"));
+				if (bUsingKeyboardMouse)
+				{
+					FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to place item"));
+				}
+				else {
+					FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Right Trigger' to place item"));
+				}
 				return;
 			}
 		}
@@ -196,7 +208,13 @@ void ATeamACharacter::UpdateInteractPrompt()
 		if (PickupInView)
 		{
 			FirstPersonWidgetInstance->ShowInteractPrompt(true);
-			FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to pick up item"));
+			if (bUsingKeyboardMouse)
+			{
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to pick up item"));
+			}
+			else {
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Right Trigger' to pick up item"));
+			}
 			return;
 		}
 	}
@@ -219,10 +237,13 @@ void ATeamACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		// Interacting
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATeamACharacter::Interact);
-		EnhancedInputComponent->BindAction(ExitWorkstationAction, ETriggerEvent::Started, this, &ATeamACharacter::ExitWorkstation);
 
 		// Pickup
 		EnhancedInputComponent->BindAction(PickupAction, ETriggerEvent::Started, this, &ATeamACharacter::ItemInteract);
+
+		// Switch keyboard/mouse and gamepad actions
+		EnhancedInputComponent->BindAction(SwitchKeyboardMouseAction, ETriggerEvent::Started, this, &ATeamACharacter::SwitchToKeyboardMouse);
+		EnhancedInputComponent->BindAction(SwitchGamepadAction, ETriggerEvent::Started, this, &ATeamACharacter::SwitchToGamepad);
 
 	}
 	else
@@ -291,11 +312,6 @@ void ATeamACharacter::OnOverlapBegin(
 
 
 	OverlappingWorkstation = workstation;
-	if (OverlappingWorkstation)
-	{
-		// You can add additional logic here if needed when overlapping begins
-		//UE_LOG(LogTeamA, Log, TEXT("Overlapping Workstation: %s"), *OverlappingWorkstation->GetName());
-	}
 }
 
 void ATeamACharacter::OnOverlapEnd(
@@ -339,7 +355,6 @@ void ATeamACharacter::Interact()
 	else {
 		if (OverlappingWorkstation && !HeldItem)
 		{
-			UE_LOG(LogTeamA, Log, TEXT("Interacting with workstation: %s"), *OverlappingWorkstation->GetName());
 			CurrentWorkstation = OverlappingWorkstation;
 
 			// Disable movement
@@ -374,13 +389,6 @@ void ATeamACharacter::Interact()
 
 }
 
-void ATeamACharacter::ExitWorkstation()
-{
-
-}
-
-
-
 
 void ATeamACharacter::ItemInteract()
 {
@@ -411,18 +419,14 @@ void ATeamACharacter::DropItem()
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_GameTraceChannel5, Params);
 	// Log hit result
-	UE_LOG(LogTeamA, Log, TEXT("Line Trace Hit: %s"), bHit ? TEXT("True") : TEXT("False"));
 
 
 	if (bHit)
 	{
-		UE_LOG(LogTeamA, Log, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
 		AItemSlot* Slot = Cast<AItemSlot>(Hit.GetActor());
-		UE_LOG(LogTeamA, Log, TEXT("Casting to AItemSlot: %s"), Slot ? TEXT("Success") : TEXT("Failed"));
 		if (Slot && Slot->AttachItem(HeldItem))
 		{
 			// Successfully attached to socket
-			UE_LOG(LogTeamA, Log, TEXT("Item attached to socket: %s"), *Slot->GetName());
 			HeldItem = nullptr;
 			return;
 		}
@@ -567,4 +571,17 @@ APickup* ATeamACharacter::GetPickupInViewNoTake()
 	}
 
 	return nullptr;
+}
+
+
+// Switch to keyboard/mouse input
+void ATeamACharacter::SwitchToKeyboardMouse()
+{
+	bUsingKeyboardMouse = true;
+}
+
+// Switch to gamepad input
+void ATeamACharacter::SwitchToGamepad()
+{
+	bUsingKeyboardMouse = false;
 }

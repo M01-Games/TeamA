@@ -557,7 +557,7 @@ void AEnchantingStation::Exit_Implementation(ACharacter* Character)
     if (CachedPC)
     {
         CachedPC->bShowMouseCursor = false;
-        CachedPC->SetInputMode(FInputModeGameAndUI());
+        CachedPC->SetInputMode(FInputModeGameOnly());
     }
 
 	OnExitBP();
