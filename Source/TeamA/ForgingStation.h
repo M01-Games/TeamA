@@ -42,25 +42,33 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	class UInputAction* HammerAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	class UInputAction* MoveIndicatorLeftAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	class UInputAction* MoveIndicatorRightAction;
+
 	void StartForgingSequence();
 	void ProcessHammerInput();
 
 	// How much forging progress per successful hit
 	UPROPERTY(EditAnywhere, Category = "Forging")
-	float ForgingProgressPerHit = 0.05f; // 5%
+	float ForgingProgressPerHit = 0.15f; // 5%
 
 	// Scoring tolerances
 	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
-	float TimingPerfectThreshold = 0.05f; // ±5%
+	float TimingPerfectThresholdDefault = 0.15f; // ±5%
+	float TimingPerfectThreshold = 0.15f; // ±5%
 
 	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
-	float TimingGoodThreshold = 0.15f; // ±15%
+	float TimingGoodThresholdDefault = 0.25f; // ±10%
+	float TimingGoodThreshold = 0.25f; // ±15%
 
 	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
-	float PositionPerfectPixels = 20.f;
+	float PositionPerfect = 0.1;
 
 	UPROPERTY(EditAnywhere, Category = "Forging|Scoring")
-	float PositionGoodPixels = 60.f;
+	float PositionGood = 0.2;
 
 	// Forging score tracking
 	UPROPERTY(BlueprintReadOnly)
@@ -90,9 +98,26 @@ public:
 	TSubclassOf<AForgingTargetActor> TargetActorClass;
 	TArray<AForgingTargetActor*> ActiveTargets;
 
-	bool GetMouseWorldPosition(FVector& OutWorldPos) const;
-
 	EForgeHitQuality CombineHitQuality(EForgeHitQuality Timing, EForgeHitQuality Position);
+
+	// Indicator position along blade (0 = handle, 1 = tip)
+	float IndicatorAlpha = 0.5f;
+
+	// How fast indicator moves per second
+	UPROPERTY(EditAnywhere, Category = "Forging|Indicator")
+	float IndicatorSpeed = 1.0f;
+
+	// Cached blade endpoints (world space)
+	FVector CachedHandlePoint;
+	FVector CachedTipPoint;
+
+	// Visual indicator actor
+	UPROPERTY(EditAnywhere, Category = "Forging|Indicator")
+	TSubclassOf<AActor> IndicatorActorClass;
+
+	AActor* IndicatorActor = nullptr;
+
+	EForgeHitQuality EvaluateIndicatorPosition(int32 TargetIndex) const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -129,25 +154,13 @@ protected:
 	void BeginNextHammer();
 	void FinishForging();
 	EForgeHitQuality EvaluateTiming(float FillValue, float TargetValue) const;
-	EForgeHitQuality EvaluateScreenPosition(
-		const FVector& HitWorldPos,
-		AForgingTargetActor* Target
-	) const;
 
-
-	UPROPERTY(EditAnywhere, Category = "Forging")
-	float PerfectWindow = 0.08f;
-
-	UPROPERTY(EditAnywhere, Category = "Forging")
-	float AcceptableWindow = 0.15f;
-
-	//
-	//
 	UFUNCTION(BlueprintImplementableEvent, Category = "Forging|Visuals")
 	void PlayHammerAnimation(int32 HammerIndex, FVector location);
-	//
-	//
 
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Forging|Visuals")
+	void SetHammerPosition(FVector location);
 
 	UPROPERTY()
 	UEnhancedInputComponent* CachedEnhancedInput = nullptr;
@@ -155,9 +168,19 @@ protected:
 	void BindInput(APlayerController* PC);
 	void UnbindInput();
 
+	void MoveIndicatorLeft();
+	void MoveIndicatorRight();
+	void UpdateIndicatorPosition(float DeltaTime);
+
+	void OnHammerPressed();
+
+	TArray<float> TargetAlphas;
+
 	// Widget instance (runtime)
 	UPROPERTY()
 	UForgingWidget* ForgingWidgetInstance;
+
+	FVector GetIndicatorWorldPosition(float Alpha) const;
 
 public:
 	virtual void Tick(float DeltaTime) override;

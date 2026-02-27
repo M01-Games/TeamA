@@ -26,6 +26,12 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ForgeTarget;
 
+	UPROPERTY(meta = (BindWidget))
+	class UImage* GoodZone;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* PerfectZone;
+
 	void UpdateForgePrompt(const FString& NewText);
 	void ShowForgePrompt(bool bShow);
 
@@ -42,4 +48,5 @@ public:
 	void SetForgeTargetPercent(float NewPercent);
 	void SetForgeTargetVisible(bool bVisible);
 
+	void UpdateHammerTimingZones(float Target, float PerfectThreshold, float GoodThreshold);
 };

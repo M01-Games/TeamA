@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ForgingWidget.h"
 #include "Components/TextBlock.h"
@@ -118,5 +118,44 @@ void UForgingWidget::SetForgeTargetVisible(bool bVisible)
 	if (ForgeTarget)
 	{
 		ForgeTarget->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+}
+
+
+void UForgingWidget::UpdateHammerTimingZones(
+	float Target,
+	float PerfectThreshold,
+	float GoodThreshold
+)
+{
+
+
+	// Set the position of both zones to be centered on the target
+	if (PerfectZone && GoodZone)
+	{
+		if (PerfectZone->GetParent())
+		{
+			UOverlay* ParentOverlay = Cast<UOverlay>(PerfectZone->GetParent());
+			if (ParentOverlay)
+			{
+				FVector2D ParentSize = ParentOverlay->GetCachedGeometry().GetLocalSize();
+				float NewY = -(ParentSize.Y * (Target - 0.5f));
+				PerfectZone->SetRenderTranslation(FVector2D(0.0f, NewY));
+				PerfectZone->SetDesiredSizeOverride(FVector2D(PerfectZone->GetDesiredSize().X, ParentSize.Y * PerfectThreshold));
+			}
+		}
+		if (GoodZone->GetParent())
+		{
+			UOverlay* ParentOverlay = Cast<UOverlay>(GoodZone->GetParent());
+			if (ParentOverlay)
+			{
+				FVector2D ParentSize = ParentOverlay->GetCachedGeometry().GetLocalSize();
+				float NewY = -(ParentSize.Y * (Target - 0.5f));
+				GoodZone->SetRenderTranslation(FVector2D(0.0f, NewY));
+				GoodZone->SetDesiredSizeOverride(FVector2D(GoodZone->GetDesiredSize().X, ParentSize.Y * GoodThreshold));
+			}
+		}
+
+		
 	}
 }

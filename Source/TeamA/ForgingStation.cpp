@@ -54,15 +54,6 @@ void AForgingStation::Enter_Implementation(ACharacter* Character)
 
 	BindInput(PC);
 
-	PC->bShowMouseCursor = true;
-
-	FInputModeGameAndUI InputMode;
-	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	InputMode.SetHideCursorDuringCapture(false);
-	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockInFullscreen);
-
-	PC->SetInputMode(InputMode);
-
 
 
 	// Get current project by checking the first project in the workstation's inventory
@@ -136,7 +127,6 @@ void AForgingStation::Exit_Implementation(ACharacter* Character)
 
 	UnbindInput();
 
-	PC->bShowMouseCursor = false;
 
 	FInputModeGameOnly InputMode;
 	PC->SetInputMode(InputMode);
@@ -194,7 +184,10 @@ void AForgingStation::Tick(float DeltaTime)
 		if (isForging)
 		{
 			float FillSpeed = 1.0f / HammerFillDuration;
-			FillSpeed *= 1 - (2 * (CurrentProject->HeatIntensity / 100.0f) - 2); // Adjust fill speed based on heat, hotter = faster)
+
+
+			TimingPerfectThreshold = TimingPerfectThresholdDefault - (2.0f / 3.0f * TimingPerfectThresholdDefault * ((100.0f - CurrentProject->HeatIntensity) / 100.0f));
+			TimingGoodThreshold = TimingGoodThresholdDefault - (2.0f / 3.0f * TimingGoodThresholdDefault * ((100.0f - CurrentProject->HeatIntensity) / 100.0f));
 
 			CurrentHammerFill += DeltaTime * FillSpeed;
 			CurrentHammerFill = FMath::Clamp(CurrentHammerFill, -HammerFillDelay, 1.0f);
@@ -205,6 +198,12 @@ void AForgingStation::Tick(float DeltaTime)
 			// Update UI
 			ForgingWidgetInstance->UpdateHammerBar_0( max(CurrentHammerFill, 0.0f));
 			ForgingWidgetInstance->SetForgeTargetPercent(CurrentTargetValue);
+
+			ForgingWidgetInstance->UpdateHammerTimingZones(
+				CurrentTargetValue,
+				TimingPerfectThreshold,
+				TimingGoodThreshold
+			);
 			
 			AForgingTargetActor* CurrentTarget = ActiveTargets.IsValidIndex(CurrentHammerIndex)
 				? ActiveTargets[CurrentHammerIndex]
@@ -215,15 +214,38 @@ void AForgingStation::Tick(float DeltaTime)
 			}
 
 		}
+
+		if (isForging)
+		{
+			UpdateIndicatorPosition(DeltaTime);
+
+			SetHammerPosition(
+				GetIndicatorWorldPosition(IndicatorAlpha)
+			);
+
+
+		}
 	}
 
 }
 
+void AForgingStation::OnHammerPressed()
+{
+	// If we are forging, hammer ALWAYS wins
+	if (isForging)
+	{
+		ProcessHammerInput();
+		return;
+	}
 
-// When Space is pressed
+	// Only allow starting forging if NOT forging
+	StartForgingSequence();
+}
+
+
 void AForgingStation::StartForgingSequence()
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("StartForgingSequence called"));
 
 	if (isForging)
 	{
@@ -267,11 +289,17 @@ void AForgingStation::StartForgingSequence()
 	USceneComponent* HandleLocation = CurrentProject->HandleSide;
 	USceneComponent* TipLocation = CurrentProject->TipSide;
 
+
+
 	if (!HandleLocation || !TipLocation || !TargetActorClass)
 		return;
 
+
 	FVector HandlePoint = HandleLocation->GetComponentLocation();
 	FVector TipPoint = TipLocation->GetComponentLocation();
+
+	CachedHandlePoint = HandlePoint;
+	CachedTipPoint = TipPoint;
 
 	// Clear old targets
 	for (AForgingTargetActor* Target : ActiveTargets)
@@ -282,8 +310,8 @@ void AForgingStation::StartForgingSequence()
 	ActiveTargets.Empty();
 
 	// Direction along blade
-	FVector BladeDirection = (TipPoint - HandlePoint).GetSafeNormal();
-	float BladeLength = FVector::Distance(HandlePoint, TipPoint);
+	FVector BladeDirection = (HandlePoint - TipPoint).GetSafeNormal();
+	float BladeLength = FVector::Distance(TipPoint, HandlePoint);
 
 	// Generate sorted alphas (0–1 along blade)
 	TArray<float> Alphas;
@@ -291,7 +319,9 @@ void AForgingStation::StartForgingSequence()
 	{
 		Alphas.Add(FMath::FRandRange(0.1f, 0.9f));
 	}
-	Alphas.Sort(); // handle → tip order
+	Alphas.Sort(); 
+	// Reverse alphas so that targets spawn from tip to handle (matches forging direction)
+	Algo::Reverse(Alphas);
 
 	for (int32 i = 0; i < PatternLength; i++)
 	{
@@ -323,10 +353,19 @@ void AForgingStation::StartForgingSequence()
 		Target->AddActorLocalOffset(FVector(15.f, 5.f, 0.f));
 
 		ActiveTargets.Add(Target);
+		TargetAlphas.Add(Alpha);
 	}
 
 
-	
+	IndicatorAlpha = 0.5f; // Set FIRST
+
+	if (!IndicatorActor && IndicatorActorClass)
+	{
+		IndicatorActor = GetWorld()->SpawnActor<AActor>(
+			IndicatorActorClass,
+			FTransform::Identity
+		);
+	}
 
 
 	ForgingWidgetInstance->ShowHammerBar_0(true);
@@ -346,27 +385,13 @@ void AForgingStation::StartForgingSequence()
 
 void AForgingStation::ProcessHammerInput()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ProcessHammerInput called"));
 	if (!isForging || !CurrentProject || !ForgingWidgetInstance)
 		return;
 
 
 	APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
-	
-	FVector2D CursorPos;
-	bool bHasCursor =
-		UWidgetLayoutLibrary::GetMousePositionScaledByDPI(
-			PC,
-			CursorPos.X,
-			CursorPos.Y
-		);
 
-	if (!bHasCursor)
-		return;
-
-
-	FVector HitWorldPos;
-	if (!GetMouseWorldPosition(HitWorldPos))
-		return;
 
 	AForgingTargetActor* CurrentTarget = ActiveTargets.IsValidIndex(CurrentHammerIndex)
 		? ActiveTargets[CurrentHammerIndex]
@@ -383,8 +408,8 @@ void AForgingStation::ProcessHammerInput()
 	EForgeHitQuality TimingQuality =
 		EvaluateTiming(CurrentHammerFill, CurrentTargetValue);
 
-	EForgeHitQuality PositionQuality =
-		EvaluateScreenPosition( HitWorldPos, CurrentTarget );
+	EForgeHitQuality PositionQuality = 
+		EvaluateIndicatorPosition(CurrentHammerIndex);
 
 
 	EForgeHitQuality FinalQuality =
@@ -392,7 +417,7 @@ void AForgingStation::ProcessHammerInput()
 
 
 	//PlayHammerAnimation(HitWorldPos, FinalQuality);
-	PlayHammerAnimation(CurrentHammerIndex, HitWorldPos);
+	PlayHammerAnimation(CurrentHammerIndex, IndicatorActor ? IndicatorActor->GetActorLocation() : FVector::ZeroVector);
 
 
 	UE_LOG(
@@ -435,7 +460,7 @@ void AForgingStation::ProcessHammerInput()
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 		GetWorld(), //Spawn in world
 		HitEffect, // Effect to spawn
-		HitWorldPos, // At target location
+		IndicatorActor ? IndicatorActor->GetActorLocation() : FVector::ZeroVector, // Spawn at indicator location
 		FRotator::ZeroRotator, // No rotation
 		FVector(EffectScale), // Scale based on hit quality
 		true, // Auto destroy
@@ -560,18 +585,59 @@ void AForgingStation::BindInput(APlayerController* PC)
 	}
 
 	CachedEnhancedInput->BindAction(
-		StartForgingAction,
-		ETriggerEvent::Started,
-		this,
-		&AForgingStation::StartForgingSequence
-	);
-
-	CachedEnhancedInput->BindAction(
 		HammerAction,
 		ETriggerEvent::Started,
 		this,
-		&AForgingStation::ProcessHammerInput
+		&AForgingStation::OnHammerPressed
 	);
+
+	
+	CachedEnhancedInput->BindAction(
+		MoveIndicatorLeftAction,
+		ETriggerEvent::Triggered,
+		this,
+		&AForgingStation::MoveIndicatorLeft
+	);
+
+	CachedEnhancedInput->BindAction(
+		MoveIndicatorRightAction,
+		ETriggerEvent::Triggered,
+		this,
+		&AForgingStation::MoveIndicatorRight
+	);
+}
+
+void AForgingStation::MoveIndicatorLeft()
+{
+	if (!isForging) return;
+
+	IndicatorAlpha -= IndicatorSpeed * GetWorld()->GetDeltaSeconds();
+	IndicatorAlpha = FMath::Clamp(IndicatorAlpha, 0.0f, 1.0f);
+}
+
+void AForgingStation::MoveIndicatorRight()
+{
+	if (!isForging) return;
+
+	IndicatorAlpha += IndicatorSpeed * GetWorld()->GetDeltaSeconds();
+	IndicatorAlpha = FMath::Clamp(IndicatorAlpha, 0.0f, 1.0f);
+}
+
+void AForgingStation::UpdateIndicatorPosition(float DeltaTime)
+{
+	if (!IndicatorActor) return;
+
+	FVector TargetPos = GetIndicatorWorldPosition(IndicatorAlpha);
+
+	// Smooth movement (prevents snapping)
+	FVector NewPos = FMath::VInterpTo(
+		IndicatorActor->GetActorLocation(),
+		TargetPos,
+		DeltaTime,
+		12.0f // responsiveness
+	);
+
+	IndicatorActor->SetActorLocation(NewPos);
 }
 
 void AForgingStation::UnbindInput()
@@ -588,92 +654,30 @@ EForgeHitQuality AForgingStation::EvaluateTiming(float FillValue, float TargetVa
 {
 	float Error = FMath::Abs(FillValue - TargetValue);
 
-	if (Error <= TimingPerfectThreshold * UpgradeLevel)
+	if (Error <= TimingPerfectThreshold)
 		return EForgeHitQuality::Perfect;
 
-	if (Error <= TimingGoodThreshold * UpgradeLevel)
+	if (Error <= TimingGoodThreshold)
 		return EForgeHitQuality::Good;
 
 	return EForgeHitQuality::Bad;
 }
-EForgeHitQuality AForgingStation::EvaluateScreenPosition(
-	const FVector& HitWorldPos,
-	AForgingTargetActor* Target
-) const
+
+FVector AForgingStation::GetIndicatorWorldPosition(float Alpha) const
 {
+	return FMath::Lerp(CachedTipPoint, CachedHandlePoint, Alpha);
+}
 
-
-	if (!Target || !Target->TargetWidget)
-		return EForgeHitQuality::Bad;
-
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	if (!PC)
-		return EForgeHitQuality::Bad;
-
-	// 1. Get mouse position
-	FVector2D MousePos;
-	if (!PC->GetMousePosition(MousePos.X, MousePos.Y))
-		return EForgeHitQuality::Bad;
-
-	// 2. Project target widget center to screen
-	FVector2D TargetScreenPos;
-	bool bProjected = PC->ProjectWorldLocationToScreen(
-		Target->TargetWidget->GetComponentLocation(),
-		TargetScreenPos,
-		false
-	);
-
-	UE_LOG(LogTemp, Warning,
-		TEXT("Mouse: %s | Target: %s"),
-		*MousePos.ToString(),
-		*TargetScreenPos.ToString()
-	);
-
-
-	if (!bProjected)
-		return EForgeHitQuality::Bad;
-
-	// 3. Measure 2D screen distance (pixels)
-	float ScreenDistance = FVector2D::Distance(MousePos, TargetScreenPos);
-
-	// 4. Score based on pixel radius
-	if (ScreenDistance <= Target->PerfectRadius * UpgradeLevel)
-		return EForgeHitQuality::Perfect;
-
-	if (ScreenDistance <= Target->GoodRadius * UpgradeLevel)
-		return EForgeHitQuality::Good;
-
-	return EForgeHitQuality::Bad;
+EForgeHitQuality AForgingStation::EvaluateIndicatorPosition(int32 TargetIndex) const { 
+	if (!TargetAlphas.IsValidIndex(TargetIndex)) 
+		return EForgeHitQuality::Bad; 
+	
+	float TargetAlpha = TargetAlphas[TargetIndex]; 
+	float Error = FMath::Abs(IndicatorAlpha - TargetAlpha); 
+	UE_LOG(LogTemp, Warning, TEXT("Evaluating position: IndicatorAlpha=%.2f | TargetAlpha=%.2f | Error=%.2f"), IndicatorAlpha, TargetAlpha, Error);
+	if (Error <= TimingPerfectThreshold/2) return EForgeHitQuality::Perfect; 
+	if (Error <= TimingGoodThreshold/2) return EForgeHitQuality::Good; 
+	return EForgeHitQuality::Bad; 
 }
 
 EForgeHitQuality AForgingStation::CombineHitQuality(EForgeHitQuality Timing, EForgeHitQuality Position) { return static_cast<EForgeHitQuality>(FMath::Max(static_cast<uint8>(Timing), static_cast<uint8>(Position))); }
-
-
-
-bool AForgingStation::GetMouseWorldPosition(FVector& OutWorldPos) const
-{
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	if (!PC)
-		return false;
-
-	FVector WorldOrigin, WorldDir;
-	if (!PC->DeprojectMousePositionToWorld(WorldOrigin, WorldDir))
-		return false;
-
-	FHitResult Hit;
-	FVector End = WorldOrigin + WorldDir * 10000.0f;
-
-	if (GetWorld()->LineTraceSingleByChannel(
-		Hit,
-		WorldOrigin,
-		End,
-		ECC_Visibility
-	))
-	{
-		//Log all information about the hit
-		OutWorldPos = Hit.Location;
-		return true;
-	}
-
-	return false;
-}
