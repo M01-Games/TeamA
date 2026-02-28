@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Fonts/SlateFontInfo.h"
 #include "FirstPersonWidget.generated.h"
 
 
@@ -26,6 +27,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* EnterPrompt;
 
+	UPROPERTY(meta = (BindWidget))
+	class UImage* ControlModeIndicator;
+
 	void UpdateInteractPrompt(const FString& NewText);
 	void ShowInteractPrompt(bool bShow);
 
@@ -35,4 +39,13 @@ public:
 	void UpdateEnterPrompt(const FString& NewText);
 	void ShowEnterPrompt(bool bShow);
 
+	void ShowControlModeIndicator(bool bShow);
+	void SetControlModeIndicatorKBM(bool bIsKBM);
+
+	void SetPromptFontsKB(bool bIsKBM);
+
+	UPROPERTY(EditAnywhere, Category = "Appearance")
+	FSlateFontInfo KBMFontInfo;
+	UPROPERTY(EditAnywhere, Category = "Appearance")
+	FSlateFontInfo GamepadFontInfo;
 };

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "TeamACharacter.h"
 #include "Animation/AnimInstance.h"
@@ -161,10 +161,10 @@ void ATeamACharacter::UpdateInteractPrompt()
 		FirstPersonWidgetInstance->ShowEnterPrompt(true);
 		if (bUsingKeyboardMouse)
 		{
-			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT("Press 'E' to enter workstation"));
+			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT(" Enter"));
 		}
 		else {
-			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT("Press 'Left Button' to enter workstation"));
+			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT(" Enter"));
 		}
 	}
 	else {
@@ -193,10 +193,10 @@ void ATeamACharacter::UpdateInteractPrompt()
 				FirstPersonWidgetInstance->ShowInteractPrompt(true);
 				if (bUsingKeyboardMouse)
 				{
-					FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to place item"));
+					FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT(" Place"));
 				}
 				else {
-					FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Right Trigger' to place item"));
+					FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT(" Place"));
 				}
 				return;
 			}
@@ -210,10 +210,10 @@ void ATeamACharacter::UpdateInteractPrompt()
 			FirstPersonWidgetInstance->ShowInteractPrompt(true);
 			if (bUsingKeyboardMouse)
 			{
-				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Left Click' to pick up item"));
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT(" Pick Up"));
 			}
 			else {
-				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT("Press 'Right Trigger' to pick up item"));
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT(" Pick Up"));
 			}
 			return;
 		}
@@ -242,8 +242,8 @@ void ATeamACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		EnhancedInputComponent->BindAction(PickupAction, ETriggerEvent::Started, this, &ATeamACharacter::ItemInteract);
 
 		// Switch keyboard/mouse and gamepad actions
-		EnhancedInputComponent->BindAction(SwitchKeyboardMouseAction, ETriggerEvent::Started, this, &ATeamACharacter::SwitchToKeyboardMouse);
-		EnhancedInputComponent->BindAction(SwitchGamepadAction, ETriggerEvent::Started, this, &ATeamACharacter::SwitchToGamepad);
+		EnhancedInputComponent->BindAction(SwitchKeyboardMouseAction, ETriggerEvent::Triggered, this, &ATeamACharacter::SwitchToKeyboardMouse);
+		EnhancedInputComponent->BindAction(SwitchGamepadAction, ETriggerEvent::Triggered, this, &ATeamACharacter::SwitchToGamepad);
 
 	}
 	else
@@ -575,13 +575,27 @@ APickup* ATeamACharacter::GetPickupInViewNoTake()
 
 
 // Switch to keyboard/mouse input
-void ATeamACharacter::SwitchToKeyboardMouse()
+void ATeamACharacter::SwitchToKeyboardMouse(const FInputActionValue& Value)
 {
+	UE_LOG(LogTeamA, Log, TEXT("Switching to keyboard/mouse input"));
+	UE_LOG(LogTeamA, Log, TEXT("Value: %s"), *Value.ToString());	
 	bUsingKeyboardMouse = true;
+	if (FirstPersonWidgetInstance)
+	{
+		FirstPersonWidgetInstance->SetControlModeIndicatorKBM(true);
+		FirstPersonWidgetInstance->SetPromptFontsKB(true);
+	}
 }
 
 // Switch to gamepad input
-void ATeamACharacter::SwitchToGamepad()
+void ATeamACharacter::SwitchToGamepad(const FInputActionValue& Value)
 {
+	UE_LOG(LogTeamA, Log, TEXT("Switching to gamepad input"));
+	UE_LOG(LogTeamA, Log, TEXT("Value: %s"), *Value.ToString());
 	bUsingKeyboardMouse = false;
+	if (FirstPersonWidgetInstance)
+	{
+		FirstPersonWidgetInstance->SetControlModeIndicatorKBM(false);
+		FirstPersonWidgetInstance->SetPromptFontsKB(false);
+	}
 }

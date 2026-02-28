@@ -66,8 +66,8 @@ protected:
 	UPROPERTY()
 	UFirstPersonWidget* FirstPersonWidgetInstance;
 
-	void SwitchToKeyboardMouse();
-	void SwitchToGamepad();
+	void SwitchToKeyboardMouse(const FInputActionValue& Value);
+	void SwitchToGamepad(const FInputActionValue& Value);
 	
 public:
 	ATeamACharacter();
