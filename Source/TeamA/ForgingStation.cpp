@@ -80,7 +80,7 @@ void AForgingStation::Enter_Implementation(ACharacter* Character)
 
 	isEntered = true;
 	isForging = false;
-	PrimaryActorTick.bCanEverTick = true;
+
 
 	CurrentTargetValue = 0.0f;
 
@@ -96,32 +96,10 @@ void AForgingStation::Enter_Implementation(ACharacter* Character)
 		{
 			ForgingWidgetInstance->AddToViewport();
 		}
-
-		if(!CurrentProject)
-		{
-			ForgingWidgetInstance->UpdateForgePrompt(TEXT("Insert a project to begin"));
-		}
-		else if(CurrentProject->bIsForged)
-		{
-			ForgingWidgetInstance->UpdateForgePrompt(TEXT("Project already forged"));
-		}
-		else {
-			if(CachedCharacter)
-			{
-				if(CachedCharacter->bUsingKeyboardMouse)
-				{
-					ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Left Click to forge"));
-				}
-				else
-				{
-					ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press Right Button to forge"));
-				}
-			}
-		}
-
-
-		ForgingWidgetInstance->ShowForgePrompt(true);
+		
 	}
+
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 
@@ -268,6 +246,57 @@ void AForgingStation::Tick(float DeltaTime)
 		}
 	}
 
+
+	if (!CurrentProject)
+	{
+		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Insert a project to begin"));
+		ForgingWidgetInstance->SetPromptFontsKB(false);
+		return;
+	}
+	else if (CurrentProject->bIsForged)
+	{
+		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Project already forged"));
+		ForgingWidgetInstance->SetPromptFontsKB(false);
+		return;
+	}
+	else {
+		if (CachedCharacter && isForging)
+		{
+			if (CachedCharacter->bUsingKeyboardMouse)
+			{
+				ForgingWidgetInstance->UpdateForgePrompt(TEXT(" Hammer"));
+				ForgingWidgetInstance->SetPromptFontsKB(true);
+
+				ForgingWidgetInstance->UpdateMovePrompt(TEXT(""));
+			}
+			else
+			{
+				ForgingWidgetInstance->UpdateForgePrompt(TEXT(" Hammer"));
+				ForgingWidgetInstance->SetPromptFontsKB(false);
+				ForgingWidgetInstance->UpdateMovePrompt(TEXT(""));
+			}
+
+		}
+		else if (CachedCharacter)
+		{
+			if (CachedCharacter->bUsingKeyboardMouse)
+			{
+				ForgingWidgetInstance->UpdateForgePrompt(TEXT(" Continue"));
+				ForgingWidgetInstance->SetPromptFontsKB(true);
+				ForgingWidgetInstance->UpdateMovePrompt(TEXT(""));
+			}
+			else
+			{
+				ForgingWidgetInstance->UpdateForgePrompt(TEXT(" Continue"));
+				ForgingWidgetInstance->SetPromptFontsKB(false);
+				ForgingWidgetInstance->UpdateMovePrompt(TEXT(""));
+			}
+		}
+	}
+
+
+	ForgingWidgetInstance->ShowForgePrompt(true);
+
 }
 
 void AForgingStation::OnHammerPressed()
@@ -303,11 +332,8 @@ void AForgingStation::StartForgingSequence()
 	if (CurrentProject->forgingProgress >= 1.0f)
 	{
 		CurrentProject->bIsForged = true;
-		ForgingWidgetInstance->UpdateForgePrompt(TEXT("Project fully forged"));
-		ForgingWidgetInstance->ShowForgePrompt(true);
 		return;
 	}
-	ForgingWidgetInstance->ShowForgePrompt(false);
 
 	//Create an array of floats equal to the forging pattern length
 	TArray<float> TargetPositions;
@@ -420,7 +446,6 @@ void AForgingStation::StartForgingSequence()
 
 void AForgingStation::ProcessHammerInput()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ProcessHammerInput called"));
 	if (!isForging || !CurrentProject || !ForgingWidgetInstance)
 		return;
 
@@ -455,14 +480,6 @@ void AForgingStation::ProcessHammerInput()
 	PlayHammerAnimation(CurrentHammerIndex, IndicatorActor ? IndicatorActor->GetActorLocation() : FVector::ZeroVector);
 
 
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("Hammer %d hit at %.2f"),
-		CurrentHammerIndex,
-		CurrentHammerFill
-	);
-
 	// Apply forging progress
 	CurrentProject->forgingProgress += ForgingProgressPerHit;
 	CurrentProject->forgingProgress =
@@ -485,10 +502,6 @@ void AForgingStation::ProcessHammerInput()
 		EffectScale *= 0.7f;
 		//Find the Grain Strength parameter of the current project and increase it by a small amount as a penalty for bad hits
 		CurrentProject->GrainStrength += 0.05f;
-		UE_LOG(LogTemp, Warning, TEXT("Grain Strength increased to %.2f"), CurrentProject->GrainStrength);
-
-
-
 		break;
 	}
 
@@ -506,17 +519,6 @@ void AForgingStation::ProcessHammerInput()
 
 	// Hide current target
 	CurrentTarget->Destroy();
-
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("Hit %d - Timing: %d | Position: %d | Final: %d | Progress: %.0f%%"),
-		CurrentHammerIndex,
-		(int32)TimingQuality,
-		(int32)PositionQuality,
-		(int32)FinalQuality,
-		CurrentProject->forgingProgress * 100.0f
-	);
 
 
 
@@ -576,27 +578,8 @@ void AForgingStation::FinishForging()
 			)
 		);
 	}
-	else
-	{
-		bool bUsingKeyboardMouse = CachedCharacter->bUsingKeyboardMouse;
-		if(bUsingKeyboardMouse)
-		{
-			ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press \"Space\" to forge!"));
-		}
-		else
-		{
-			ForgingWidgetInstance->UpdateForgePrompt(TEXT("Press \"Right Button\" to forge!"));
-		}
-	}
 
 	ForgingWidgetInstance->ShowForgePrompt(true);
-
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("Forging sequence complete. Progress: %.0f%%"),
-		CurrentProject->forgingProgress * 100.0f
-	);
 
 }
 

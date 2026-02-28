@@ -25,6 +25,22 @@ void UForgingWidget::ShowForgePrompt(bool bShow)
 	}
 }
 
+void UForgingWidget::UpdateMovePrompt(const FString& NewText)
+{
+	if (MovePrompt)
+	{
+		MovePrompt->SetText(FText::FromString(NewText));
+	}
+}
+
+void UForgingWidget::ShowMovePrompt(bool bShow)
+{
+	if (MovePrompt)
+	{
+		MovePrompt->SetVisibility(bShow ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+}
+
 
 FVector2D UForgingWidget::GetCanvasSize() const
 {
@@ -110,5 +126,17 @@ void UForgingWidget::UpdateHammerTimingZones(
 		}
 
 		
+	}
+}
+
+void UForgingWidget::SetPromptFontsKB(bool bIsKBM)
+{
+	if (ForgePrompt)
+	{
+		ForgePrompt->SetFont(bIsKBM ? KBMFontInfo : GamepadFontInfo);
+	}
+	if (MovePrompt)
+	{
+		MovePrompt->SetFont(bIsKBM ? KBMFontInfo : GamepadFontInfo);
 	}
 }

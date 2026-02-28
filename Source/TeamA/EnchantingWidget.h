@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Image.h"
-
+#include "Fonts/SlateFontInfo.h"
 #include "EnchantingWidget.generated.h"
 
 /**
@@ -36,6 +36,13 @@ public:
 
 
 	void UpdateEnchantingPrompt(const FString& NewText);
+	void SetPromptFontsKB(bool bIsKBM);
+
+	UPROPERTY(EditAnywhere, Category = "Appearance")
+	FSlateFontInfo KBMFontInfo;
+	UPROPERTY(EditAnywhere, Category = "Appearance")
+	FSlateFontInfo GamepadFontInfo;
+
 	void ShowEnchantingPrompt(bool bShow);
 
 

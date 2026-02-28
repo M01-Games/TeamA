@@ -24,6 +24,9 @@ public:
     class UTextBlock* ForgePrompt;
 
 	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* MovePrompt;
+
+	UPROPERTY(meta = (BindWidget))
 	class UImage* ForgeTarget;
 
 	UPROPERTY(meta = (BindWidget))
@@ -35,8 +38,18 @@ public:
 	void UpdateForgePrompt(const FString& NewText);
 	void ShowForgePrompt(bool bShow);
 
+	void UpdateMovePrompt(const FString& NewText);
+	void ShowMovePrompt(bool bShow);
+
 	void SetForgeTargetPercent(float NewPercent);
 	void SetForgeTargetVisible(bool bVisible);
 
 	void UpdateHammerTimingZones(float Target, float PerfectThreshold, float GoodThreshold);
+
+	void SetPromptFontsKB(bool bIsKBM);
+
+	UPROPERTY(EditAnywhere, Category = "Appearance")
+	FSlateFontInfo KBMFontInfo;
+	UPROPERTY(EditAnywhere, Category = "Appearance")
+	FSlateFontInfo GamepadFontInfo;
 };
