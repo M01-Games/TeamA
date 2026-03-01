@@ -70,3 +70,11 @@ void UEnchantingWidget::ClearEnscribedImages()
 		}
 	}
 }
+
+void UEnchantingWidget::SetPromptFontsKB(bool bIsKBM)
+{
+	if (EnchantingPrompt)
+	{
+		EnchantingPrompt->SetFont(bIsKBM ? KBMFontInfo : GamepadFontInfo);
+	}
+}

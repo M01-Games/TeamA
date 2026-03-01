@@ -18,6 +18,7 @@
 #include "Project.h"
 #include "Pickup.h"
 #include "Crystal.h"
+#include "TeamACharacter.h"
 #include "EnchantingStation.generated.h"
 
 UENUM(BlueprintType)
@@ -108,6 +109,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnExitBP();
+
+	ATeamACharacter* CachedCharacter = nullptr;
+
 protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void BeginPlay() override;
@@ -171,5 +175,5 @@ protected:
 	void OnRuneClassified(const FString& RuneName);
 
 
-	
+	void UpdateUI();
 };

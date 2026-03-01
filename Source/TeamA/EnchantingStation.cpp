@@ -1,4 +1,4 @@
-// EnchantingStation.cpp
+﻿// EnchantingStation.cpp
 #include "EnchantingStation.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -146,10 +146,16 @@ void AEnchantingStation::BeginPlay()
 
 void AEnchantingStation::Enter_Implementation(ACharacter* Character)
 {
+    PrimaryActorTick.bCanEverTick = true;
     APlayerController* PC = Character ? Cast<APlayerController>(Character->GetController()) : nullptr;
     if (!PC || !PC->IsLocalController()) return;
 
     CachedPC = PC;
+	CachedCharacter = Cast<ATeamACharacter>(Character);
+	UE_LOG(LogTemp, Log, TEXT("Entering Enchanting Station: %s"), *GetName());
+	UE_LOG(LogTemp, Log, TEXT("Player Controller: %s"), *PC->GetName());
+	UE_LOG(LogTemp, Log, TEXT("Character: %s"), *Character->GetName());
+	UE_LOG(LogTemp, Log, TEXT("Cached Character: %s"), *CachedCharacter->GetName());
 
     OnEnterBP();
 
@@ -184,7 +190,7 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
     InputMode.SetHideCursorDuringCapture(false);
     PC->SetInputMode(InputMode);
     
-    PrimaryActorTick.bCanEverTick = true;
+    
 
     
     CreateEnchantingWidget();
@@ -192,8 +198,6 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
     //If inventory is empty
     if (Inventory.IsEmpty())
     {
-        EnchantingWidget->ShowEnchantingPrompt(true);
-        EnchantingWidget->UpdateEnchantingPrompt(TEXT("No item to enchant"));
         return;
     }
     else {
@@ -237,21 +241,15 @@ void AEnchantingStation::Enter_Implementation(ACharacter* Character)
 
         if (CurrentProject)
         {
-            if (CurrentProject->bIsEnchanted) { EnchantingWidget->ShowEnchantingPrompt(true); EnchantingWidget->UpdateEnchantingPrompt(TEXT("Item already enchanted")); return; }
+            if (CurrentProject->bIsEnchanted) {  return; }
         }
 
 
 		//if no amethyst, show prompt to add amethyst
 		if (!Amethyst)
         {
-             EnchantingWidget->ShowEnchantingPrompt(true);
-             EnchantingWidget->UpdateEnchantingPrompt(TEXT("Add amethyst to enchant the item"));
-			 Amethyst = nullptr;
              return;
 		}
-
-        EnchantingWidget->ShowEnchantingPrompt(true);
-        EnchantingWidget->UpdateEnchantingPrompt(TEXT("Draw a rune to enchant the item!"));
     }
 
     
@@ -420,6 +418,10 @@ void AEnchantingStation::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+	UpdateUI();
+
+
+
     if (!bIsDrawing || !CachedPC)
         return;
 
@@ -445,8 +447,7 @@ void AEnchantingStation::Tick(float DeltaTime)
         LastUV = UV;
     }
 
-
-
+    
 }
 
 
@@ -462,9 +463,6 @@ void AEnchantingStation::StartDrawing()
     }
     if (!Amethyst)
     {
-        EnchantingWidget->ShowEnchantingPrompt(true);
-        EnchantingWidget->UpdateEnchantingPrompt(TEXT("Add amethyst to enchant the item"));
-		UE_LOG(LogTemp, Warning, TEXT("Cannot start drawing - no amethyst present"));
         return;
     }
 
@@ -474,9 +472,6 @@ void AEnchantingStation::StartDrawing()
 
     // Reset current stroke points, but DO NOT clear the render target!
     CurrentStroke.Reset();
-
-    UE_LOG(LogTemp, Log, TEXT("Started new stroke"));
-	EnchantingWidget->ShowEnchantingPrompt(false);
 }
 
 
@@ -489,7 +484,6 @@ void AEnchantingStation::StopDrawing()
 
     if (!Amethyst)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Cannot start drawing - no amethyst present"));
         return;
     }
 
@@ -500,8 +494,7 @@ void AEnchantingStation::StopDrawing()
         CurrentStroke.Reset();
     }
     bHasLastUV = false;
-	EnchantingWidget->ShowEnchantingPrompt(true); 
-    EnchantingWidget->UpdateEnchantingPrompt(TEXT("Press space to finish the rune"));
+
 }
 
 void AEnchantingStation::FinishRune()
@@ -761,11 +754,6 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
     if (RuneName == TEXT("INVALID"))
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid rune drawn!"));
-        if (EnchantingWidget)
-        {
-            EnchantingWidget->ShowEnchantingPrompt(true);
-            EnchantingWidget->UpdateEnchantingPrompt(TEXT("Invalid rune drawn! Try again."));
-        }
         return;
 	}
 
@@ -816,13 +804,6 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
                         *CurrentProject->SkeletalMesh->GetOverlayMaterial()->GetName());
 
                     CurrentProject->bIsEnchanted = true;
-                    if (EnchantingWidget)
-                    {
-                        EnchantingWidget->ShowEnchantingPrompt(true);
-                        EnchantingWidget->UpdateEnchantingPrompt(
-                            FString::Printf(TEXT("Enchantment Applied: %s"), *EnchantmentKey)
-						);
-                    }
                 }
                 else
                 {
@@ -846,27 +827,48 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
             UE_LOG(LogTemp, Warning, TEXT("No enchantment found for key: %s"), *EnchantmentKey);
 
             CurrentProject->bIsEnchanted = false;
-            if (EnchantingWidget)
-            {
-                EnchantingWidget->ShowEnchantingPrompt(true);
-                EnchantingWidget->UpdateEnchantingPrompt(TEXT("Failed to Enchant Item"));
-            }
 
             // Clear the inscribed runes to allow retry
             CurrentProject->InscribedRunes.Empty();
         }
     }
-    else 
+
+}
+
+void AEnchantingStation::UpdateUI()
+{
+    if (EnchantingWidget)
     {
-        if (EnchantingWidget)
+        EnchantingWidget->ShowEnchantingPrompt(true);
+        EnchantingWidget->SetPromptFontsKB(true);
+        if (CurrentProject)
+        {
+            if (CurrentProject->bIsEnchanted) { EnchantingWidget->ShowEnchantingPrompt(true); EnchantingWidget->UpdateEnchantingPrompt(TEXT("Item already enchanted")); return; }
+        }
+        if (!CurrentProject)
+        {
+            EnchantingWidget->UpdateEnchantingPrompt(TEXT("No item to enchant"));
+            return;
+        }
+        
+        if (!Amethyst)
         {
             EnchantingWidget->ShowEnchantingPrompt(true);
-            EnchantingWidget->UpdateEnchantingPrompt(
-                FString::Printf(TEXT("Inscribed with Rune: %s, %d more rune%s needed"), 
-                *RuneName, 
-                3 - CurrentProject->InscribedRunes.Num(),
-                (3 - CurrentProject->InscribedRunes.Num()) == 1 ? TEXT("") : TEXT("s"))
-            );
+            EnchantingWidget->UpdateEnchantingPrompt(TEXT("Add amethyst to enchant the item"));
+			return;
+        }
+        
+        if (CachedCharacter && CachedCharacter->bUsingKeyboardMouse)
+        {
+            EnchantingWidget->SetPromptFontsKB(true);
+            EnchantingWidget->ShowEnchantingPrompt(true);
+            EnchantingWidget->UpdateEnchantingPrompt(TEXT(" Draw       Submit"));
+        }
+        else
+        {
+            EnchantingWidget->SetPromptFontsKB(false);
+            EnchantingWidget->ShowEnchantingPrompt(true);
+            EnchantingWidget->UpdateEnchantingPrompt(TEXT(" Draw       Submit"));
         }
     }
 }
