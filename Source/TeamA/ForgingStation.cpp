@@ -382,10 +382,21 @@ void AForgingStation::StartForgingSequence()
 	for (int32 i = 0; i < PatternLength; i++)
 	{
 		Alphas.Add(FMath::FRandRange(0.1f, 0.9f));
+
 	}
 	Alphas.Sort(); 
-	// Reverse alphas so that targets spawn from tip to handle (matches forging direction)
-	//Algo::Reverse(Alphas);
+
+	// Make sure there is a minimum distance between targets
+	float MinTargetDistance = 0.1f; // Minimum distance in world units (adjust as needed)
+	for (int32 i = 1; i < Alphas.Num(); i++)
+	{
+		if (Alphas[i] - Alphas[i - 1] < MinTargetDistance / BladeLength)
+		{
+			Alphas[i] = Alphas[i - 1] + MinTargetDistance / BladeLength;
+			i = 0; // Restart loop to recheck distances after adjustment
+		}
+	}
+	
 
 	for (int32 i = 0; i < PatternLength; i++)
 	{
@@ -586,9 +597,6 @@ void AForgingStation::FinishForging()
 
 
 
-
-
-// Input Binding
 
 void AForgingStation::BindInput(APlayerController* PC)
 {
