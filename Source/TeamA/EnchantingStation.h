@@ -19,6 +19,7 @@
 #include "Pickup.h"
 #include "Crystal.h"
 #include "TeamACharacter.h"
+#include "ItemTypesEnum.h"
 #include "EnchantingStation.generated.h"
 
 UENUM(BlueprintType)
@@ -102,7 +103,10 @@ public:
 
 	// Dictionary of encahntments
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enchantments")
-	TMap<FString, UMaterialInstance*> Enchantments;
+	TMap<FString, UMaterialInstance*> EnchantmentMaterials;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enchantments")
+	TMap<FString, EEnchants> Enchantments;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnEnterBP();

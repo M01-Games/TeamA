@@ -35,6 +35,7 @@
 #include "NNERuntimeRunSync.h"
 #include "EnchantingWidget.h"
 #include "Crystal.h"
+#include "ItemTypesEnum.h"
 #include "DrawDebugHelpers.h"
 
 
@@ -782,9 +783,14 @@ void AEnchantingStation::OnRuneClassified(const FString& RuneName)
         FString EnchantmentKey = FString::Join(CurrentProject->InscribedRunes, TEXT("")); 
         UE_LOG(LogTemp, Log, TEXT("Enchantment Key: %s"), *EnchantmentKey);
         
-        if (Enchantments.Contains(EnchantmentKey)) 
+		if (Enchantments.Contains(EnchantmentKey) && EnchantmentMaterials.Contains(EnchantmentKey))
         { 
-            UMaterialInstance* EnchantmentEffect = Enchantments[EnchantmentKey];
+			CurrentProject->Enchant = Enchantments[EnchantmentKey];
+
+
+
+
+            UMaterialInstance* EnchantmentEffect = EnchantmentMaterials[EnchantmentKey];
             
             if (EnchantmentEffect && CurrentProject->SkeletalMesh)
             {

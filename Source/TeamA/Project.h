@@ -60,6 +60,9 @@ public:
 	USceneComponent* TipSide;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USceneComponent* HandleSide;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EEnchants Enchant;
 	
 protected:
 	// On overlap stay event
