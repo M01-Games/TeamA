@@ -205,6 +205,8 @@ void ATeamACharacter::UpdateInteractPrompt()
 	else {
 		
 		APickup* PickupInView = GetPickupInViewNoTake();
+		bool bViewingTask = IsViewingTask();
+		bool bViewingDelivery = IsViewingDelivery();
 		if (PickupInView)
 		{
 			FirstPersonWidgetInstance->ShowInteractPrompt(true);
@@ -217,9 +219,31 @@ void ATeamACharacter::UpdateInteractPrompt()
 			}
 			return;
 		}
+		else if (bViewingTask)
+			{
+			FirstPersonWidgetInstance->ShowInteractPrompt(true);
+			if (bUsingKeyboardMouse)
+			{
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT(" View Task"));
+			}
+			else {
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT(" View Task"));
+			}
+			return;
+		}
+		else if (bViewingDelivery)
+		{
+			FirstPersonWidgetInstance->ShowInteractPrompt(true);
+			if (bUsingKeyboardMouse)
+			{
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT(" View Delivery"));
+			}
+			else {
+				FirstPersonWidgetInstance->UpdateInteractPrompt(TEXT(" View Delivery"));
+			}
+			return;
+		}
 	}
-
-
 	FirstPersonWidgetInstance->ShowInteractPrompt(false);
 }
 
@@ -573,6 +597,50 @@ APickup* ATeamACharacter::GetPickupInViewNoTake()
 	return nullptr;
 }
 
+bool ATeamACharacter::IsViewingTask()
+{
+	bool taskHit = false;
+
+	FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+	FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * 300.0f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	taskHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_GameTraceChannel2,
+		Params
+	);
+
+	return taskHit;
+
+}
+
+bool ATeamACharacter::IsViewingDelivery()
+{
+	bool taskHit = false;
+
+	FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+	FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * 300.0f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	taskHit = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		Start,
+		End,
+		ECC_GameTraceChannel6,
+		Params
+	);
+
+	return taskHit;
+}
 
 // Switch to keyboard/mouse input
 void ATeamACharacter::SwitchToKeyboardMouse(const FInputActionValue& Value)

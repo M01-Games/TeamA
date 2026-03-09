@@ -148,6 +148,8 @@ protected:
 	void DropItem();
 	void PickupItem();
 
+	bool IsViewingTask();
+	bool IsViewingDelivery();
 
 
 

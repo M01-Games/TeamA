@@ -33,10 +33,6 @@
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]
-		},
-		{
-			"Name": "NNERuntimeBasicCpu",
-			"Enabled": true
 		}
 	]
 }
