@@ -491,6 +491,8 @@ void AForgingStation::ProcessHammerInput()
 	PlayHammerAnimation(CurrentHammerIndex, IndicatorActor ? IndicatorActor->GetActorLocation() : FVector::ZeroVector);
 
 
+
+
 	// Apply forging progress
 	CurrentProject->forgingProgress += ForgingProgressPerHit;
 	CurrentProject->forgingProgress =
@@ -515,6 +517,35 @@ void AForgingStation::ProcessHammerInput()
 		CurrentProject->GrainStrength += 0.05f;
 		break;
 	}
+
+	// play a hit sound effect here based on hit quality 
+
+	USoundBase* HitSound = nullptr;
+	switch (FinalQuality)
+	{
+		case EForgeHitQuality::Perfect:
+			HitSound = HammerHitSounds[0];
+			break;
+		case EForgeHitQuality::Good:
+			HitSound = HammerHitSounds[1];
+			break;
+		case EForgeHitQuality::Bad:
+			HitSound = HammerHitSounds[2];
+			break;
+	}
+
+
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			HitSound,
+			IndicatorActor ? IndicatorActor->GetActorLocation() : FVector::ZeroVector,
+			1.0f, // Volume
+			1.0f  // Pitch
+		);
+	}
+
 
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 		GetWorld(), //Spawn in world

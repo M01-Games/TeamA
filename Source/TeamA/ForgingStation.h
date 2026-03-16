@@ -11,6 +11,7 @@
 #include "ForgingTargetActor.h"
 #include "NiagaraSystem.h"
 #include "TeamACharacter.h"
+#include "EnhancedInputComponent.h"
 #include "ForgingStation.generated.h"
 
 /**
@@ -115,6 +116,9 @@ public:
 	AActor* IndicatorActor = nullptr;
 
 	EForgeHitQuality EvaluateIndicatorPosition(int32 TargetIndex) const;
+
+	UPROPERTY(EditAnywhere, Category = "Forging|Sound")
+	TArray<USoundBase*> HammerHitSounds;
 
 protected:
 	virtual void BeginPlay() override;
