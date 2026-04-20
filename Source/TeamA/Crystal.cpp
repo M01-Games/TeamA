@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "ItemSlot.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 
 // Sets default values
@@ -39,6 +40,34 @@ void ACrystal::Shatter()
 		float ImpulseStrength = 150.0f;
 		GeometryCollection->AddImpulse(ImpulseDirection * ImpulseStrength, NAME_None, true);
 	}
+
+	// get actors we are attached to
+	AActor* AttachedActor = GetAttachParentActor();
+	if (AttachedActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Crystal is attached to: %s"), *AttachedActor->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Crystal is not attached to any actor."));
+	}
+	//if attached actor is an item slot, call the item slots DetachItem function to detach the crystal from the slot
+	if (AttachedActor)
+	{
+		AItemSlot* ItemSlot = Cast<AItemSlot>(AttachedActor);
+		if (ItemSlot)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Crystal is attached to an ItemSlot: %s"), *ItemSlot->GetName());
+			ItemSlot->DetachItem();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Attached actor is not an ItemSlot."));
+		}
+	}
+
+	//Kill the crystal actor after a short delay to allow the shattering effect to play out
+	SetLifeSpan(5.0f);
 
 
 }
