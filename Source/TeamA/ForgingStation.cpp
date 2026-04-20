@@ -494,7 +494,7 @@ void AForgingStation::ProcessHammerInput()
 
 
 	// Apply forging progress
-	CurrentProject->forgingProgress += ForgingProgressPerHit;
+	CurrentProject->forgingProgress += ForgingProgressPerHit * UpgradeLevel;
 	CurrentProject->forgingProgress =
 		FMath::Clamp(CurrentProject->forgingProgress, 0.0f, 1.0f);
 	CurrentProject->ForgeModel();
