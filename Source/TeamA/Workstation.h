@@ -52,7 +52,7 @@ protected:
 	UBoxComponent* InteractionVolume;
 
 	// Visible mesh for the workstation 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* Mesh;
 
 	// Camera location/rotation when player is using this station
