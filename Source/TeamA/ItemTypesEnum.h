@@ -31,6 +31,16 @@ enum class ESpecificTypes : uint8
     Sword UMETA(DisplayName = "Sword"),
 	Dagger UMETA(DisplayName = "Dagger"),
 	Axe UMETA(DisplayName = "Axe"),
+	//Handles
+	SwordHandle UMETA(DisplayName = "Sword Handle"),
+	AxeHandle UMETA(DisplayName = "Axe Handle"),
+	//Amethyst Crystal
+	Amethyst UMETA(DisplayName = "Amethyst"),
+	//Moulds
+	AxeMould UMETA(DisplayName = "Axe Mould"),
+	SwordMould UMETA(DisplayName = "Sword Mould"),
+	DaggerMould UMETA(DisplayName = "Dagger Mould"),
+
 	None UMETA(DisplayName = "None")
 };
 
