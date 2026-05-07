@@ -23,16 +23,18 @@ public:
 	USkeletalMeshComponent* SkeletalMesh;
 
 	//Variables for Forging minigame
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsForged;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<float> ForgingPattern;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float forgingProgress;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TotalForgeScore;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 TotalForgeHits;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float FinalForgeScore;
 
 	void FinalizeForgingScore();
