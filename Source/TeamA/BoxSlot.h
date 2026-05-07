@@ -40,5 +40,5 @@ public:
 
 	APickup* TakeItem() override;
 
-	
+	void EjectAll();
 };

@@ -15,7 +15,4 @@ class TEAMA_API USaveGame_Blacksmith : public USaveGame
 {
 	GENERATED_BODY()
 	
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SaveData")
-
 };

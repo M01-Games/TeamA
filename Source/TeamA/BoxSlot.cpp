@@ -198,3 +198,35 @@ APickup* ABoxSlot::TakeItem()
 	}
 	return Item;
 }
+
+void ABoxSlot::EjectAll() {
+	if (ContainedItems.Num() == 0)
+		return;
+	int i = ContainedItems.Num();
+	AActor* ParentActor = GetAttachParentActor();
+	AWorkstation* Workstation = Cast<AWorkstation>(ParentActor);
+	for (int x = 0; x < i; x++) {
+		APickup* Item = ContainedItems.Pop();
+		if (ParentActor)
+		{
+			if (Workstation)
+			{
+				Workstation->Inventory.Remove(Item);
+			}
+		}
+		Item->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		Item->InteractionVolume->SetSimulatePhysics(true);
+		Item->InteractionVolume->SetEnableGravity(true);
+		Item->InteractionVolume->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		if (ContainedItems.Num() > 0)
+		{
+			AttachedItem = ContainedItems.Last();
+			AttachedItem->SetActorHiddenInGame(false);
+		}
+		else
+		{
+			AttachedItem = nullptr;
+			bIsOccupied = false;
+		}
+	}
+}
