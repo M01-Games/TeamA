@@ -38,6 +38,9 @@ public:
     UPROPERTY(BlueprintReadOnly)
     bool bIsOccupied;
 
+    UPROPERTY(BlueprintReadOnly)
+	bool bIsFull;
+
     /** The item currently attached */
     UPROPERTY(BlueprintReadOnly)
     APickup* AttachedItem;

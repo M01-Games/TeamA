@@ -105,7 +105,7 @@ void ATeamACharacter::UpdateItemSlotHighlight()
 			AItemSlot* Slot = Cast<AItemSlot>(Actor);
 			if (Slot)
 			{
-				if (Slot->AcceptedItemType == HeldItem->ItemType && !Slot->bIsOccupied)
+				if (Slot->AcceptedItemType == HeldItem->ItemType && !Slot->bIsFull)
 				{
 					if (Slot->AcceptedSpecificType == HeldItem->SpecificType || Slot->bRequiresSpecificType == false)
 					{

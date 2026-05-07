@@ -12,6 +12,7 @@ ABoxSlot::ABoxSlot()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	ContainedItems = TArray<APickup*>();
+	bIsFull = false;
 }
 
 bool ABoxSlot::AttachItem(APickup* Item)
@@ -60,6 +61,15 @@ bool ABoxSlot::AttachItem(APickup* Item)
 	AttachedItem = Item;
 	bIsOccupied = true;
 
+	if (ContainedItems.Num() >= ItemMax)
+	{
+		bIsFull = true;
+	}
+	else
+	{
+		bIsFull = false;
+	}
+
 	//Check if parent actor is a workstation
 	AActor* ParentActor = GetAttachParentActor();
 	if (ParentActor)
@@ -103,7 +113,19 @@ void ABoxSlot::DetachItem()
 	{
 		AttachedItem = nullptr;
 		bIsOccupied = false;
+
+
 	}
+
+	if (ContainedItems.Num() >= ItemMax)
+	{
+		bIsFull = true;
+	}
+	else
+	{
+		bIsFull = false;
+	}
+
 	return;
 }
 
@@ -132,6 +154,15 @@ void ABoxSlot::DeleteItem()
 	{
 		AttachedItem = nullptr;
 		bIsOccupied = false;
+	}
+
+	if (ContainedItems.Num() >= ItemMax)
+	{
+		bIsFull = true;
+	}
+	else
+	{
+		bIsFull = false;
 	}
 }
 
@@ -165,7 +196,14 @@ void ABoxSlot::DeleteAll() {
 		}
 	}
 
-	
+	if (ContainedItems.Num() >= ItemMax)
+	{
+		bIsFull = true;
+	}
+	else
+	{
+		bIsFull = false;
+	}
 }
 
 APickup* ABoxSlot::TakeItem()
@@ -196,6 +234,16 @@ APickup* ABoxSlot::TakeItem()
 		AttachedItem = nullptr;
 		bIsOccupied = false;
 	}
+
+	if (ContainedItems.Num() >= ItemMax)
+	{
+		bIsFull = true;
+	}
+	else
+	{
+		bIsFull = false;
+	}
+
 	return Item;
 }
 
@@ -228,5 +276,14 @@ void ABoxSlot::EjectAll() {
 			AttachedItem = nullptr;
 			bIsOccupied = false;
 		}
+	}
+
+	if (ContainedItems.Num() >= ItemMax)
+	{
+		bIsFull = true;
+	}
+	else
+	{
+		bIsFull = false;
 	}
 }

@@ -13,6 +13,7 @@ AItemSlot::AItemSlot()
     RootComponent = SocketPoint;
 
     bIsOccupied = false;
+	bIsFull = false;
     AttachedItem = nullptr;
 
     AcceptedItemType = EItemTypesEnum::Project; // Default allows any type
@@ -80,6 +81,7 @@ bool AItemSlot::AttachItem(APickup* Item)
 
     AttachedItem = Item;
     bIsOccupied = true;
+	bIsFull = true;
 
 	//Check if parent actor is a workstation
 	AActor* ParentActor = GetAttachParentActor();
@@ -127,6 +129,7 @@ void AItemSlot::DetachItem()
 
     AttachedItem = nullptr;
     bIsOccupied = false;
+	bIsFull = false;
 
 }
 
@@ -151,6 +154,7 @@ void AItemSlot::DeleteItem()
     AttachedItem->Destroy();
     AttachedItem = nullptr;
     bIsOccupied = false;
+	bIsFull = false;
 
  
 }
@@ -164,6 +168,7 @@ APickup* AItemSlot::TakeItem()
 
     AttachedItem = nullptr;
     bIsOccupied = false;
+	bIsFull = false;
 
 	//Check if parent actor is a workstation
 	AActor* ParentActor = GetAttachParentActor();
