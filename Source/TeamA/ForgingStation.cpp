@@ -614,10 +614,7 @@ void AForgingStation::FinishForging()
 		CurrentProject->FinalizeForgingScore();
 
 		ForgingWidgetInstance->UpdateForgePrompt(
-			FString::Printf(
-				TEXT("Forging complete! Score: %.0f"),
-				CurrentProject->FinalForgeScore
-			)
+			FString::Printf(TEXT("Forging complete!"))
 		);
 	}
 
