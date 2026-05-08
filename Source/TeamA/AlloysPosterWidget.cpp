@@ -3,21 +3,19 @@
 
 #include "AlloysPosterWidget.h"
 
-void UAlloysPosterWidget::SetPosterImage(FString& PosterImage, bool visible)
+void UAlloysPosterWidget::SetPosterImage(const FString& PosterImage, bool visible)
 {
-	PosterImage = PosterImage.TrimStartAndEnd(); // Remove leading and trailing whitespace
-	PosterImage = PosterImage.ToLower(); // Convert to lowercase for case-insensitive comparison
 	UImage* TargetImage = nullptr;
 
 	if (PosterImage.Equals(TEXT("steel"), ESearchCase::IgnoreCase))
 	{
 		TargetImage = SteelImage;
 	}
-	else if (PosterImage.Equals(TEXT("fire"), ESearchCase::IgnoreCase))
+	else if (PosterImage.Equals(TEXT("brass"), ESearchCase::IgnoreCase))
 	{
 		TargetImage = BrassImage;
 	}
-	else if (PosterImage.Equals(TEXT("brass"), ESearchCase::IgnoreCase))
+	else if (PosterImage.Equals(TEXT("rosegold"), ESearchCase::IgnoreCase))
 	{
 		TargetImage = RoseGoldImage;
 	}

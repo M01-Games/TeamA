@@ -32,5 +32,5 @@ public:
 	UImage* SteelImage;
 
 	UFUNCTION(BlueprintCallable)
-	void SetPosterImage(FString& PosterImage, bool visible);
+	void SetPosterImage(const FString& PosterImage, bool visible);
 };
