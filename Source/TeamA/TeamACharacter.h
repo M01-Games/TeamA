@@ -114,6 +114,8 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	APickup* HeldItem;
 
+	bool overlappingBed = false;
+
 
 	// UI Widget for forging
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")

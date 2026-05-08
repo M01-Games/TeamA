@@ -84,6 +84,11 @@ void ATeamACharacter::BeginPlay()
 // tick
 void ATeamACharacter::Tick(float DeltaTime)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Overlapping bed : %s"), overlappingBed ? TEXT("true") : TEXT("false"));
+	//print overlapping workstation
+	UE_LOG(LogTemp, Warning, TEXT("Overlapping workstation : %s"), (OverlappingWorkstation != nullptr) ? TEXT("true") : TEXT("false"));
+
 	Super::Tick(DeltaTime);
 
 	UpdateInteractPrompt();
@@ -156,7 +161,7 @@ void ATeamACharacter::UpdateInteractPrompt()
 		return;
 	}
 
-	if (OverlappingWorkstation && !HeldItem) {
+	if ((OverlappingWorkstation) && !HeldItem) {
 		//Show interact prompt
 		FirstPersonWidgetInstance->ShowEnterPrompt(true);
 		if (bUsingKeyboardMouse)
@@ -165,6 +170,17 @@ void ATeamACharacter::UpdateInteractPrompt()
 		}
 		else {
 			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT(" Enter"));
+		}
+	}
+	else if (overlappingBed && !HeldItem)
+	{
+		FirstPersonWidgetInstance->ShowEnterPrompt(true);
+		if (bUsingKeyboardMouse)
+		{
+			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT(" Sleep"));
+		}
+		else {
+			FirstPersonWidgetInstance->UpdateEnterPrompt(TEXT(" Sleep"));
 		}
 	}
 	else {
@@ -326,11 +342,20 @@ void ATeamACharacter::OnOverlapBegin(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {	//Check if other actor is a workstation
+
+	if (OtherActor->ActorHasTag("bed"))
+	{
+		UE_LOG(LogTeamA, Log, TEXT("Overlapping bed: %s"), *OtherActor->GetName());
+		overlappingBed = true;
+		return;
+	}
+
 	AWorkstation* workstation = nullptr;
 	//attempt to cast
 	workstation = Cast<AWorkstation>(OtherActor);
 	if (!workstation)
 	{
+		
 		return;
 	}
 
@@ -347,6 +372,10 @@ void ATeamACharacter::OnOverlapEnd(
 	if (OtherActor == OverlappingWorkstation)
 	{
 		OverlappingWorkstation = nullptr;
+	}
+	if (OtherActor->ActorHasTag("bed"))
+	{
+		overlappingBed = false;
 	}
 }
 
